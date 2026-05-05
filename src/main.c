@@ -30,6 +30,17 @@ int main() {
             fill_random_matrix(A, n);
             fill_random_matrix(B, n);
 
+            if (DEBUG_OUTPUT && run == 0 && n == 64) {
+                char filenameA[50];
+                char filenameB[50];
+                
+                sprintf(filenameA, "A_%d_run%d.txt", n, run + 1);
+                sprintf(filenameB, "B_%d_run%d.txt", n, run + 1);
+                
+                write_matrix_to_file(filenameA, A, n);
+                write_matrix_to_file(filenameB, B, n);
+            }
+
             printf("  Generated pair %d/%d\n", run + 1, NUM_RUNS);
 
             free(A);
