@@ -4,6 +4,10 @@
 #include "config.h"
 #include "matrix.h"
 
+#ifndef DEBUG_OUTPUT
+#define DEBUG_OUTPUT 0
+#endif
+
 int main() {
     srand(RANDOM_SEED);
 
