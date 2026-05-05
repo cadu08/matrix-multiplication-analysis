@@ -1,19 +1,37 @@
 #include <stdio.h>
-#include "utils.h"
+#include <stdlib.h>
+
+#include "config.h"
+#include "matrix.h"
 
 int main() {
-    volatile long sum = 0;
+    srand(RANDOM_SEED);
 
-    double start = get_time();
+    for (int s = 0; s < NUM_SIZES; s++) {
+        int n = MATRIX_SIZES[s];
 
-    for (long i = 0; i < 100000000; i++) {
-        sum += i;
+        printf("Matrix size: %d x %d\n", n, n);
+
+        for (int run = 0; run < NUM_RUNS; run++) {
+            int *A = malloc(n * n * sizeof(int));
+            int *B = malloc(n * n * sizeof(int));
+
+            if (A == NULL || B == NULL) {
+                printf("Memory allocation failed.\n");
+                free(A);
+                free(B);
+                return 1;
+            }
+
+            fill_random_matrix(A, n);
+            fill_random_matrix(B, n);
+
+            printf("  Generated pair %d/%d\n", run + 1, NUM_RUNS);
+
+            free(A);
+            free(B);
+        }
     }
-
-    double end = get_time();
-
-    printf("Sum: %ld\n", sum);
-    printf("Elapsed time: %f seconds\n", end - start);
 
     return 0;
 }
