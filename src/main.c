@@ -1,52 +1,37 @@
 #include <stdio.h>
-#include <stdlib.h>
-
-#include "config.h"
-#include "matrix.h"
-
-#ifndef DEBUG_OUTPUT
-#define DEBUG_OUTPUT 0
-#endif
+#include "utils.h"
+#include "iterative.h"
 
 int main() {
-    srand(RANDOM_SEED);
+    int n = 2;
 
-    for (int s = 0; s < NUM_SIZES; s++) {
-        int n = MATRIX_SIZES[s];
+    int A[2][2] = {
+        {1, 2},
+        {3, 4}
+    };
 
-        printf("Matrix size: %d x %d\n", n, n);
+    int B[2][2] = {
+        {5, 6},
+        {7, 8}
+    };
 
-        for (int run = 0; run < NUM_RUNS; run++) {
-            int *A = malloc(n * n * sizeof(int));
-            int *B = malloc(n * n * sizeof(int));
+    int C[2][2];
 
-            if (A == NULL || B == NULL) {
-                printf("Memory allocation failed.\n");
-                free(A);
-                free(B);
-                return 1;
-            }
+    double start = get_time();
 
-            fill_random_matrix(A, n);
-            fill_random_matrix(B, n);
+    multiply_iterative(n, A, B, C);
 
-            if (DEBUG_OUTPUT && run == 0 && n == 64) {
-                char filenameA[50];
-                char filenameB[50];
-                
-                sprintf(filenameA, "A_%d_run%d.txt", n, run + 1);
-                sprintf(filenameB, "B_%d_run%d.txt", n, run + 1);
-                
-                write_matrix_to_file(filenameA, A, n);
-                write_matrix_to_file(filenameB, B, n);
-            }
+    double end = get_time();
 
-            printf("  Generated pair %d/%d\n", run + 1, NUM_RUNS);
-
-            free(A);
-            free(B);
+    printf("Result matrix:\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%d ", C[i][j]);
         }
+        printf("\n");
     }
+
+    printf("Elapsed time: %.9f seconds\n", end - start);
 
     return 0;
 }
