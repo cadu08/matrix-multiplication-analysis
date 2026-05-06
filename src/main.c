@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "utils.h"
-#include "iterative.h"
+#include "divide_conquer.h"
 
 int main() {
     int n = 2;
@@ -19,7 +19,7 @@ int main() {
 
     double start = get_time();
 
-    multiply_iterative(n, A, B, C);
+    multiply_divide_conquer(n, A, B, C);
 
     double end = get_time();
 
