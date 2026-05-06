@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include "utils.h"
 #include "hybrid.h"
 
@@ -22,13 +23,18 @@ int main() {
 
     int C[4][4];
 
+    long memory_before = get_memory_usage_kb();
+
     double start = get_time();
 
     multiply_hybrid(n, A, B, C, threshold);
 
     double end = get_time();
 
+    long memory_after = get_memory_usage_kb();
+
     printf("Hybrid result matrix:\n");
+
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             printf("%d ", C[i][j]);
@@ -36,8 +42,18 @@ int main() {
         printf("\n");
     }
 
+    printf("\n");
+
     printf("Threshold: %d\n", threshold);
+
     printf("Elapsed time: %.9f seconds\n", end - start);
+
+    printf("Memory before: %ld KB\n", memory_before);
+
+    printf("Memory after: %ld KB\n", memory_after);
+
+    printf("Memory difference: %ld KB\n",
+           memory_after - memory_before);
 
     return 0;
 }
