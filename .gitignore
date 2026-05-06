@@ -1,0 +1,18 @@
+# Executable
+matrix_project
+
+# Object files
+*.o
+
+# Temporary/editor files
+*.swp
+*.tmp
+
+# VS Code
+.vscode/
+
+# Build folders
+build/
+
+# Benchmark outputs (optional)
+results/
