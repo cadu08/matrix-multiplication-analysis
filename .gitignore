@@ -15,4 +15,7 @@ matrix_project
 build/
 
 # Benchmark outputs (optional)
-results/
+# results/
+
+# VENV Python
+.venv/
