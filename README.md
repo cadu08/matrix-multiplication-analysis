@@ -39,10 +39,13 @@ The following algorithms are implemented in C:
 
 ---
 
-### 4. Strassen Algorithm (Optional)
+### 4. Strassen Algorithm
 - Reduces the number of multiplications
 - Time complexity: approximately O(n^2.81)
-- Higher overhead, beneficial for large matrices only
+- Implemented as a pure recursive algorithm, without an iterative threshold
+- Higher overhead from temporary matrices and extra additions/subtractions
+- Expected to become advantageous only when the reduction from eight to seven
+  recursive multiplications offsets the larger memory and recursion overhead
 
 ---
 
@@ -77,6 +80,8 @@ The project compares:
 - Theoretical complexity vs observed performance
 - Impact of recursion overhead
 - Effect of threshold selection in the hybrid approach
+- Whether the asymptotic reduction of Strassen compensates for its additional
+  memory traffic and arithmetic overhead at the tested sizes
 - When advanced algorithms outperform the classical method
 
 ---

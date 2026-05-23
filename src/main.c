@@ -6,6 +6,7 @@
 #include "iterative.h"
 #include "divide_conquer.h"
 #include "hybrid.h"
+#include "strassen.h"
 #include "heap_tracker.h"
 
 #define NUM_SIZES 5
@@ -106,6 +107,7 @@ int main() {
             run_experiment(file, "iterative", multiply_iterative, n, pair_id, A, B);
             run_experiment(file, "recursive", multiply_divide_conquer, n, pair_id, A, B);
             run_experiment(file, "hybrid", multiply_hybrid_wrapper, n, pair_id, A, B);
+            run_experiment(file, "strassen", multiply_strassen, n, pair_id, A, B);
 
             free(A);
             free(B);
