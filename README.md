@@ -240,6 +240,26 @@ The generated plots include mean execution time and mean tracked heap peak by
 algorithm and matrix size. The charts use logarithmic scales to make growth
 patterns visible across the full range of tested inputs.
 
+### Notebook Analysis
+
+For richer visual analysis, install the notebook dependencies in the project
+virtual environment:
+
+```bash
+.venv/bin/python -m pip install -r requirements-analysis.txt
+```
+
+Then execute the integrated notebook:
+
+```bash
+make notebook-analysis
+```
+
+The notebook at `notebooks/analyze_results.ipynb` validates the full dataset,
+plots timing distributions, empirical growth exponents, tracked heap usage and
+numerical error, and saves generated figures under
+`results/analysis/notebook_figures/`.
+
 ### Debug Mode
 
 The project also includes an optional debug mode.

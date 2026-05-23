@@ -77,6 +77,12 @@ results/analysis/heap_peak_bytes_mean.svg
 results/analysis/experimental_summary.md
 ```
 
+The notebook analysis additionally writes figures under:
+
+```text
+results/analysis/notebook_figures/
+```
+
 CSV and analysis outputs under `results/` are generated artifacts and are
 ignored by Git.
 
@@ -227,8 +233,49 @@ When changing only analysis scripts:
 
 1. Reuse the existing aggregated CSV if the raw experiment has not changed.
 2. Run `make analyze-full`.
-3. Do not rerun the expensive full benchmark unless the algorithm or benchmark
+3. Run `make notebook-analysis` when the integrated notebook should be refreshed.
+4. Do not rerun the expensive full benchmark unless the algorithm or benchmark
    instrumentation changed.
+
+## Notebook Analysis
+
+The main notebook is:
+
+```text
+notebooks/analyze_results.ipynb
+```
+
+It provides a narrative analysis sequence:
+
+- dataset loading and completeness validation;
+- aggregated overview table;
+- log-log mean execution-time plot;
+- raw timing distribution by input pair;
+- empirical exponent estimate `log2(T(2n) / T(n))`;
+- tracked heap peak plot;
+- numerical error plot;
+- practical winner tables;
+- final interpretation notes.
+
+Install its dependencies with:
+
+```bash
+.venv/bin/python -m pip install -r requirements-analysis.txt
+```
+
+Execute it reproducibly with:
+
+```bash
+make notebook-analysis
+```
+
+The notebook depends on the full raw and aggregated CSV files. If those files
+are missing or incomplete, run:
+
+```bash
+make benchmark-full-resume
+make aggregate-full
+```
 
 ## Reproducibility Controls
 

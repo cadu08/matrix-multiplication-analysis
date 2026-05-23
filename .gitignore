@@ -17,6 +17,7 @@ build/
 # Benchmark outputs
 results/*.csv
 results/analysis/
+results/.mplconfig/
 
 # VENV Python
 .venv/

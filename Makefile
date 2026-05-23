@@ -9,7 +9,7 @@ SMOKE_SUMMARY = results/experiment_summary_smoke.csv
 FULL_SUMMARY = results/experiment_summary_sizes5_pairs10_seed42.csv
 ANALYSIS_DIR = results/analysis
 
-.PHONY: all debug run run-debug benchmark-smoke benchmark-smoke-resume benchmark-full benchmark-full-resume aggregate-smoke aggregate-full analyze-full clean
+.PHONY: all debug run run-debug benchmark-smoke benchmark-smoke-resume benchmark-full benchmark-full-resume aggregate-smoke aggregate-full analyze-full notebook-analysis clean
 
 all:
 	$(CC) $(CFLAGS) $(SRC) -o $(OUT)
@@ -49,6 +49,9 @@ aggregate-full:
 
 analyze-full:
 	python3 scripts/plot_summary.py $(FULL_SUMMARY) $(ANALYSIS_DIR)
+
+notebook-analysis:
+	.venv/bin/jupyter nbconvert --to notebook --execute notebooks/analyze_results.ipynb --output analyze_results.ipynb --output-dir notebooks --ExecutePreprocessor.timeout=120
 
 clean:
 	rm -f $(OUT)
