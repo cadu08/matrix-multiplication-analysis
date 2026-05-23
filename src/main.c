@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <errno.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -15,6 +16,8 @@
 #include "heap_tracker.h"
 
 #define DEFAULT_RESULTS_FILE "results/experiment_results.csv"
+#define NUM_ALGORITHMS 5
+#define CSV_HEADER "algorithm,matrix_size,pair_id,time_seconds,memory_before_kb,memory_after_kb,memory_difference_kb,heap_current_bytes,heap_peak_bytes,heap_allocations,is_correct,max_abs_error,max_rel_error\n"
 
 #ifndef NUM_SIZES
 #define NUM_SIZES 5
@@ -52,6 +55,19 @@ typedef struct {
     matrix_value_t max_rel_error;
 } validation_result_t;
 
+typedef struct {
+    const char *name;
+    matrix_multiply_fn multiply;
+} algorithm_config_t;
+
+static const char *ALGORITHM_NAMES[NUM_ALGORITHMS] = {
+    "iterative",
+    "recursive",
+    "hybrid_divide_conquer",
+    "strassen",
+    "hybrid_strassen"
+};
+
 static void ensure_results_directory_exists(void) {
     struct stat results_stat;
 
@@ -66,6 +82,124 @@ static void ensure_results_directory_exists(void) {
             exit(EXIT_FAILURE);
         }
     }
+}
+
+static int file_exists_and_is_not_empty(const char *path) {
+    struct stat file_stat;
+
+    return stat(path, &file_stat) == 0 && file_stat.st_size > 0;
+}
+
+static int algorithm_index(const char *algorithm_name) {
+    for (int i = 0; i < NUM_ALGORITHMS; i++) {
+        if (strcmp(algorithm_name, ALGORITHM_NAMES[i]) == 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+static int size_index(int n, int sizes[], int size_count) {
+    for (int i = 0; i < size_count; i++) {
+        if (sizes[i] == n) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+static int mark_completed_result_line(
+    char *line,
+    int sizes[],
+    int size_count,
+    int completed[NUM_SIZES][NUM_PAIRS + 1][NUM_ALGORITHMS]
+) {
+    char *fields[13];
+    int field_count = 0;
+
+    for (
+        char *field = strtok(line, ",\r\n");
+        field != NULL && field_count < 13;
+        field = strtok(NULL, ",\r\n")
+    ) {
+        fields[field_count] = field;
+        field_count++;
+    }
+
+    if (field_count < 13) {
+        return 0;
+    }
+
+    if (strcmp(fields[10], "1") != 0) {
+        return 0;
+    }
+
+    int algorithm = algorithm_index(fields[0]);
+    int n = atoi(fields[1]);
+    int pair_id = atoi(fields[2]);
+    int size = size_index(n, sizes, size_count);
+
+    if (
+        algorithm < 0 ||
+        size < 0 ||
+        pair_id < 1 ||
+        pair_id > NUM_PAIRS
+    ) {
+        return 0;
+    }
+
+    completed[size][pair_id][algorithm] = 1;
+
+    return 1;
+}
+
+static int load_completed_results(
+    const char *results_file_path,
+    int sizes[],
+    int size_count,
+    int completed[NUM_SIZES][NUM_PAIRS + 1][NUM_ALGORITHMS]
+) {
+    char line[1024];
+    int completed_rows = 0;
+    FILE *file = fopen(results_file_path, "r");
+
+    if (file == NULL) {
+        return 0;
+    }
+
+    if (fgets(line, sizeof(line), file) == NULL) {
+        fclose(file);
+        return 0;
+    }
+
+    while (fgets(line, sizeof(line), file) != NULL) {
+        completed_rows += mark_completed_result_line(
+            line,
+            sizes,
+            size_count,
+            completed
+        );
+    }
+
+    fclose(file);
+
+    return completed_rows;
+}
+
+static int pair_has_pending_algorithms(
+    int size_index,
+    int pair_id,
+    int completed[NUM_SIZES][NUM_PAIRS + 1][NUM_ALGORITHMS]
+) {
+    for (int algorithm = 0; algorithm < NUM_ALGORITHMS; algorithm++) {
+        if (!completed[size_index][pair_id][algorithm]) {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 static validation_result_t validate_against_reference(
@@ -163,6 +297,8 @@ void run_experiment(
         validation.max_rel_error
     );
 
+    fflush(file);
+
     if (!validation.is_correct) {
         fprintf(
             stderr,
@@ -193,33 +329,57 @@ int main(int argc, char *argv[]) {
     int sizes[] = {64, 128, 256, 512, 1024};
     int available_sizes = (int) (sizeof(sizes) / sizeof(sizes[0]));
     const char *results_file_path = DEFAULT_RESULTS_FILE;
+    int results_file_path_set = 0;
+    int resume_enabled = 0;
+    int completed[NUM_SIZES][NUM_PAIRS + 1][NUM_ALGORITHMS] = {{{0}}};
+    algorithm_config_t algorithms[NUM_ALGORITHMS] = {
+        {ALGORITHM_NAMES[0], multiply_iterative},
+        {ALGORITHM_NAMES[1], multiply_divide_conquer},
+        {ALGORITHM_NAMES[2], multiply_hybrid_divide_conquer_wrapper},
+        {ALGORITHM_NAMES[3], multiply_strassen},
+        {ALGORITHM_NAMES[4], multiply_hybrid_strassen_wrapper}
+    };
 
     if (NUM_SIZES > available_sizes) {
         fprintf(stderr, "NUM_SIZES cannot exceed %d\n", available_sizes);
         return 1;
     }
 
-    if (argc > 2) {
-        fprintf(stderr, "Usage: %s [results_csv_path]\n", argv[0]);
-        return 1;
-    }
-
-    if (argc == 2) {
-        results_file_path = argv[1];
+    for (int arg = 1; arg < argc; arg++) {
+        if (strcmp(argv[arg], "--resume") == 0) {
+            resume_enabled = 1;
+        } else if (!results_file_path_set) {
+            results_file_path = argv[arg];
+            results_file_path_set = 1;
+        } else {
+            fprintf(stderr, "Usage: %s [results_csv_path] [--resume]\n", argv[0]);
+            return 1;
+        }
     }
 
     ensure_results_directory_exists();
 
-    FILE *file = fopen(results_file_path, "w");
+    if (resume_enabled) {
+        int completed_rows = load_completed_results(
+            results_file_path,
+            sizes,
+            NUM_SIZES,
+            completed
+        );
+
+        printf("Resume mode enabled: %d completed rows loaded from %s\n", completed_rows, results_file_path);
+    }
+
+    int append_results = resume_enabled && file_exists_and_is_not_empty(results_file_path);
+    FILE *file = fopen(results_file_path, append_results ? "a" : "w");
     if (file == NULL) {
         fprintf(stderr, "Error opening results file: %s\n", results_file_path);
         return 1;
     }
 
-    fprintf(
-        file,
-        "algorithm,matrix_size,pair_id,time_seconds,memory_before_kb,memory_after_kb,memory_difference_kb,heap_current_bytes,heap_peak_bytes,heap_allocations,is_correct,max_abs_error,max_rel_error\n"
-    );
+    if (!append_results) {
+        fprintf(file, CSV_HEADER);
+    }
 
     srand(FIXED_SEED);
 
@@ -227,6 +387,7 @@ int main(int argc, char *argv[]) {
         int n = sizes[s];
 
         printf("Running experiments for size %d x %d...\n", n, n);
+        fflush(stdout);
 
         for (int pair_id = 1; pair_id <= NUM_PAIRS; pair_id++) {
             matrix_value_t *A = malloc(n * n * sizeof(matrix_value_t));
@@ -245,18 +406,33 @@ int main(int argc, char *argv[]) {
             fill_random_matrix(A, n);
             fill_random_matrix(B, n);
 
-            multiply_iterative(
-                n,
-                (matrix_value_t (*)[n]) A,
-                (matrix_value_t (*)[n]) B,
-                (matrix_value_t (*)[n]) reference
-            );
+            if (pair_has_pending_algorithms(s, pair_id, completed)) {
+                multiply_iterative(
+                    n,
+                    (matrix_value_t (*)[n]) A,
+                    (matrix_value_t (*)[n]) B,
+                    (matrix_value_t (*)[n]) reference
+                );
 
-            run_experiment(file, "iterative", multiply_iterative, n, pair_id, A, B, reference);
-            run_experiment(file, "recursive", multiply_divide_conquer, n, pair_id, A, B, reference);
-            run_experiment(file, "hybrid_divide_conquer", multiply_hybrid_divide_conquer_wrapper, n, pair_id, A, B, reference);
-            run_experiment(file, "strassen", multiply_strassen, n, pair_id, A, B, reference);
-            run_experiment(file, "hybrid_strassen", multiply_hybrid_strassen_wrapper, n, pair_id, A, B, reference);
+                for (int algorithm = 0; algorithm < NUM_ALGORITHMS; algorithm++) {
+                    if (completed[s][pair_id][algorithm]) {
+                        continue;
+                    }
+
+                    run_experiment(
+                        file,
+                        algorithms[algorithm].name,
+                        algorithms[algorithm].multiply,
+                        n,
+                        pair_id,
+                        A,
+                        B,
+                        reference
+                    );
+
+                    completed[s][pair_id][algorithm] = 1;
+                }
+            }
 
             free(A);
             free(B);

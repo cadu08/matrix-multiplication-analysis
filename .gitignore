@@ -16,9 +16,12 @@ build/
 
 # Benchmark outputs
 results/*.csv
+results/analysis/
 
 # VENV Python
 .venv/
+__pycache__/
+*.pyc
 
 # Codex Resources
 agent.md

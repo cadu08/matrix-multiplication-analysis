@@ -2,6 +2,9 @@
 
 This project presents a comparative study of different matrix multiplication algorithms, focusing on both theoretical complexity and practical performance.
 
+For the detailed experimental protocol, output schema and interpretation notes,
+see [`docs/experimental_protocol.md`](docs/experimental_protocol.md).
+
 ## 📌 Objective
 
 The goal of this project is to analyze and compare multiple approaches to matrix multiplication, evaluating:
@@ -158,6 +161,12 @@ matrix pair, then writes:
 results/experiment_results_smoke.csv
 ```
 
+To resume this smoke benchmark without duplicating already completed rows, run:
+
+```bash
+make benchmark-smoke-resume
+```
+
 For the full experimental collection described above, run:
 
 ```bash
@@ -170,9 +179,66 @@ This writes:
 results/experiment_results_sizes5_pairs10_seed42.csv
 ```
 
+If a long benchmark is interrupted, continue from the already completed
+algorithm/size/pair rows with:
+
+```bash
+make benchmark-full-resume
+```
+
 The smoke target is intended only to verify compilation, CSV generation,
 correctness validation and heap instrumentation. The full target is the one
 intended for later statistical aggregation.
+
+Resume mode reads the existing CSV before the experiment starts, marks only
+complete rows with `is_correct=1` as reusable, and appends missing runs to the
+same file. This bookkeeping, CSV flushing and progress output happen outside
+the timed multiplication interval, so the recorded `time_seconds` metric remains
+restricted to the algorithm call itself.
+
+### Result Aggregation
+
+After generating a raw benchmark CSV, aggregate the samples by algorithm and
+matrix size with:
+
+```bash
+python3 scripts/aggregate_results.py results/experiment_results_sizes5_pairs10_seed42.csv results/experiment_summary_sizes5_pairs10_seed42.csv
+```
+
+Equivalent Make targets are available for the standard benchmark outputs:
+
+```bash
+make aggregate-smoke
+make aggregate-full
+```
+
+The aggregation output includes `sample_count`, `correct_sample_count`,
+`all_correct`, and mean, sample standard deviation, minimum and maximum for
+each recorded metric. These grouped values are intended for comparing observed
+growth trends against the theoretical complexity of each algorithm.
+
+The standard Make targets also validate the expected number of samples per
+group: `aggregate-smoke` requires one sample and `aggregate-full` requires ten
+samples for every algorithm/size combination. This prevents an interrupted
+benchmark run from being summarized as if it were complete.
+
+### First-Pass Analysis Artifacts
+
+After `make aggregate-full` succeeds, generate initial comparison artifacts with:
+
+```bash
+make analyze-full
+```
+
+This creates SVG plots and a Markdown summary under:
+
+```bash
+results/analysis/
+```
+
+The generated plots include mean execution time and mean tracked heap peak by
+algorithm and matrix size. The charts use logarithmic scales to make growth
+patterns visible across the full range of tested inputs.
 
 ### Debug Mode
 
