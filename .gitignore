@@ -19,3 +19,6 @@ build/
 
 # VENV Python
 .venv/
+
+# Codex Resources
+agent.md
