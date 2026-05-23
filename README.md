@@ -31,7 +31,7 @@ The following algorithms are implemented in C:
 
 ---
 
-### 3. Hybrid Approach
+### 3. Hybrid Divide-and-Conquer Approach
 - Combines recursion and iteration
 - Uses divide and conquer for large matrices
 - Switches to iterative multiplication below a threshold
@@ -46,6 +46,15 @@ The following algorithms are implemented in C:
 - Higher overhead from temporary matrices and extra additions/subtractions
 - Expected to become advantageous only when the reduction from eight to seven
   recursive multiplications offsets the larger memory and recursion overhead
+
+---
+
+### 5. Hybrid Strassen Approach
+- Combines Strassen recursion and iterative multiplication
+- Uses Strassen's seven recursive products for large matrices
+- Switches to iterative multiplication below a threshold
+- Expected to reduce Strassen's allocation and recursion overhead on small
+  subproblems while preserving its asymptotic advantage at upper levels
 
 ---
 
@@ -79,7 +88,8 @@ The project compares:
 
 - Theoretical complexity vs observed performance
 - Impact of recursion overhead
-- Effect of threshold selection in the hybrid approach
+- Effect of threshold selection in the hybrid divide-and-conquer and hybrid
+  Strassen approaches
 - Whether the asymptotic reduction of Strassen compensates for its additional
   memory traffic and arithmetic overhead at the tested sizes
 - When advanced algorithms outperform the classical method

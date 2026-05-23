@@ -5,14 +5,16 @@
 #include "matrix.h"
 #include "iterative.h"
 #include "divide_conquer.h"
-#include "hybrid.h"
+#include "hybrid_divide_conquer.h"
+#include "hybrid_strassen.h"
 #include "strassen.h"
 #include "heap_tracker.h"
 
 #define NUM_SIZES 5
 #define NUM_PAIRS 10
 #define FIXED_SEED 42
-#define HYBRID_THRESHOLD 64
+#define HYBRID_DIVIDE_CONQUER_THRESHOLD 64
+#define HYBRID_STRASSEN_THRESHOLD 64
 
 typedef void (*matrix_multiply_fn)(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]);
 
@@ -64,8 +66,12 @@ void run_experiment(
     free(C_data);
 }
 
-void multiply_hybrid_wrapper(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]) {
-    multiply_hybrid(n, A, B, C, HYBRID_THRESHOLD);
+void multiply_hybrid_divide_conquer_wrapper(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]) {
+    multiply_hybrid_divide_conquer(n, A, B, C, HYBRID_DIVIDE_CONQUER_THRESHOLD);
+}
+
+void multiply_hybrid_strassen_wrapper(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]) {
+    multiply_hybrid_strassen(n, A, B, C, HYBRID_STRASSEN_THRESHOLD);
 }
 
 int main() {
@@ -106,8 +112,9 @@ int main() {
 
             run_experiment(file, "iterative", multiply_iterative, n, pair_id, A, B);
             run_experiment(file, "recursive", multiply_divide_conquer, n, pair_id, A, B);
-            run_experiment(file, "hybrid", multiply_hybrid_wrapper, n, pair_id, A, B);
+            run_experiment(file, "hybrid_divide_conquer", multiply_hybrid_divide_conquer_wrapper, n, pair_id, A, B);
             run_experiment(file, "strassen", multiply_strassen, n, pair_id, A, B);
+            run_experiment(file, "hybrid_strassen", multiply_hybrid_strassen_wrapper, n, pair_id, A, B);
 
             free(A);
             free(B);

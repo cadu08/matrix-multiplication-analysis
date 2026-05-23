@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "hybrid.h"
+#include "hybrid_divide_conquer.h"
 #include "heap_tracker.h"
 #include "iterative.h"
 
@@ -35,13 +35,13 @@ static void add_matrix(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], ma
 }
 
 /*
- * Hybrid matrix multiplication.
+ * Hybrid divide-and-conquer matrix multiplication.
  * Time complexity: O(n^3), using recursive decomposition only above the
  * configured threshold and the iterative algorithm below it.
  * The tracked heap allocations make the threshold's impact on recursive
  * memory pressure observable without changing the multiplication result.
  */
-void multiply_hybrid(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n], int threshold) {
+void multiply_hybrid_divide_conquer(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n], int threshold) {
     if (n <= threshold) {
         multiply_iterative(n, A, B, C);
         return;
@@ -73,7 +73,7 @@ void multiply_hybrid(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matr
         C11 == NULL || C12 == NULL || C21 == NULL || C22 == NULL ||
         M1 == NULL || M2 == NULL
     ) {
-        fprintf(stderr, "Error allocating submatrices for hybrid multiplication\n");
+        fprintf(stderr, "Error allocating submatrices for hybrid divide-and-conquer multiplication\n");
         free_submatrices(
             A11, A12, A21, A22,
             B11, B12, B21, B22,
@@ -97,20 +97,20 @@ void multiply_hybrid(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matr
         }
     }
 
-    multiply_hybrid(m, A11, B11, M1, threshold);
-    multiply_hybrid(m, A12, B21, M2, threshold);
+    multiply_hybrid_divide_conquer(m, A11, B11, M1, threshold);
+    multiply_hybrid_divide_conquer(m, A12, B21, M2, threshold);
     add_matrix(m, M1, M2, C11);
 
-    multiply_hybrid(m, A11, B12, M1, threshold);
-    multiply_hybrid(m, A12, B22, M2, threshold);
+    multiply_hybrid_divide_conquer(m, A11, B12, M1, threshold);
+    multiply_hybrid_divide_conquer(m, A12, B22, M2, threshold);
     add_matrix(m, M1, M2, C12);
 
-    multiply_hybrid(m, A21, B11, M1, threshold);
-    multiply_hybrid(m, A22, B21, M2, threshold);
+    multiply_hybrid_divide_conquer(m, A21, B11, M1, threshold);
+    multiply_hybrid_divide_conquer(m, A22, B21, M2, threshold);
     add_matrix(m, M1, M2, C21);
 
-    multiply_hybrid(m, A21, B12, M1, threshold);
-    multiply_hybrid(m, A22, B22, M2, threshold);
+    multiply_hybrid_divide_conquer(m, A21, B12, M1, threshold);
+    multiply_hybrid_divide_conquer(m, A22, B22, M2, threshold);
     add_matrix(m, M1, M2, C22);
 
     for (int i = 0; i < m; i++) {
