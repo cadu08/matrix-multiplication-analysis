@@ -60,6 +60,14 @@ For each size, 10 pairs of matrices `A` and `B` are generated.
 
 The matrices are filled with pseudo-random floating-point values in the open interval `(0, 1)`, excluding both zero and one. A fixed random seed is used to ensure reproducibility, meaning that the same input matrices can be generated again in future executions unless the seed is changed.
 
+The CSV output also includes heap instrumentation for the algorithm execution:
+
+- `heap_current_bytes`: memory still allocated by tracked algorithm allocations after the call finishes
+- `heap_peak_bytes`: maximum tracked heap memory in use at the same time
+- `heap_allocations`: total number of successful tracked dynamic allocations
+
+The tracked heap metrics are reset for each algorithm run and measure the recursive algorithm allocations directly, instead of relying only on process-level RSS.
+
 ---
 
 ## 📊 Analysis

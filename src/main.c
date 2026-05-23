@@ -6,6 +6,7 @@
 #include "iterative.h"
 #include "divide_conquer.h"
 #include "hybrid.h"
+#include "heap_tracker.h"
 
 #define NUM_SIZES 5
 #define NUM_PAIRS 10
@@ -35,23 +36,28 @@ void run_experiment(
     matrix_value_t (*C)[n] = (matrix_value_t (*)[n]) C_data;
 
     long memory_before = get_memory_usage_kb();
+    heap_tracker_reset();
     double start = get_time();
 
     multiply(n, A, B, C);
 
     double end = get_time();
+    heap_stats_t heap_stats = heap_tracker_get_stats();
     long memory_after = get_memory_usage_kb();
 
     fprintf(
         file,
-        "%s,%d,%d,%.9f,%ld,%ld,%ld\n",
+        "%s,%d,%d,%.9f,%ld,%ld,%ld,%zu,%zu,%zu\n",
         algorithm_name,
         n,
         pair_id,
         end - start,
         memory_before,
         memory_after,
-        memory_after - memory_before
+        memory_after - memory_before,
+        heap_stats.current_bytes,
+        heap_stats.peak_bytes,
+        heap_stats.allocation_count
     );
 
     free(C_data);
@@ -72,7 +78,7 @@ int main() {
 
     fprintf(
         file,
-        "algorithm,matrix_size,pair_id,time_seconds,memory_before_kb,memory_after_kb,memory_difference_kb\n"
+        "algorithm,matrix_size,pair_id,time_seconds,memory_before_kb,memory_after_kb,memory_difference_kb,heap_current_bytes,heap_peak_bytes,heap_allocations\n"
     );
 
     srand(FIXED_SEED);

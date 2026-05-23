@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "divide_conquer.h"
+#include "heap_tracker.h"
 #include "iterative.h"
 
 static void free_submatrices(
@@ -19,10 +20,10 @@ static void free_submatrices(
     void *M1,
     void *M2
 ) {
-    free(A11); free(A12); free(A21); free(A22);
-    free(B11); free(B12); free(B21); free(B22);
-    free(C11); free(C12); free(C21); free(C22);
-    free(M1); free(M2);
+    tracked_free(A11); tracked_free(A12); tracked_free(A21); tracked_free(A22);
+    tracked_free(B11); tracked_free(B12); tracked_free(B21); tracked_free(B22);
+    tracked_free(C11); tracked_free(C12); tracked_free(C21); tracked_free(C22);
+    tracked_free(M1); tracked_free(M2);
 }
 
 static void add_matrix(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]) {
@@ -33,6 +34,13 @@ static void add_matrix(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], ma
     }
 }
 
+/*
+ * Divide-and-conquer matrix multiplication.
+ * Time complexity: T(n) = 8T(n/2) + O(n^2), therefore O(n^3).
+ * The tracked heap allocations capture the recursive submatrix footprint
+ * independently from allocator page reuse, which supports controlled
+ * empirical comparison of peak memory usage across input sizes.
+ */
 void multiply_divide_conquer(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]) {
     if (n == 1) {
         C[0][0] = A[0][0] * B[0][0];
@@ -41,23 +49,23 @@ void multiply_divide_conquer(int n, matrix_value_t A[n][n], matrix_value_t B[n][
 
     int m = n / 2;
 
-    matrix_value_t (*A11)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*A12)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*A21)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*A22)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*A11)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*A12)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*A21)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*A22)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
 
-    matrix_value_t (*B11)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*B12)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*B21)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*B22)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*B11)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*B12)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*B21)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*B22)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
 
-    matrix_value_t (*C11)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*C12)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*C21)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*C22)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*C11)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*C12)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*C21)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*C22)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
 
-    matrix_value_t (*M1)[m] = malloc(sizeof(matrix_value_t[m][m]));
-    matrix_value_t (*M2)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*M1)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*M2)[m] = tracked_malloc(sizeof(matrix_value_t[m][m]));
 
     if (
         A11 == NULL || A12 == NULL || A21 == NULL || A22 == NULL ||
