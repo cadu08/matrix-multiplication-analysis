@@ -14,8 +14,8 @@ matrix_project
 # Build folders
 build/
 
-# Benchmark outputs (optional)
-# results/
+# Benchmark outputs
+results/*.csv
 
 # VENV Python
 .venv/

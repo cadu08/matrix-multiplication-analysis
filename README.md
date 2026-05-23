@@ -77,8 +77,13 @@ The CSV output also includes heap instrumentation for the algorithm execution:
 - `heap_current_bytes`: memory still allocated by tracked algorithm allocations after the call finishes
 - `heap_peak_bytes`: maximum tracked heap memory in use at the same time
 - `heap_allocations`: total number of successful tracked dynamic allocations
+- `is_correct`: whether the measured result matches the iterative reference within the configured numerical tolerance
+- `max_abs_error`: largest absolute difference from the iterative reference matrix
+- `max_rel_error`: largest relative difference from the iterative reference matrix
 
 The tracked heap metrics are reset for each algorithm run and measure the recursive algorithm allocations directly, instead of relying only on process-level RSS.
+
+Before each measured run, the iterative algorithm computes a reference result for the generated matrix pair. Each algorithm result is validated against that reference after timing ends, so correctness checks do not inflate the recorded multiplication time. Because the matrices use floating-point values, validation uses absolute and relative error tolerances instead of requiring bitwise equality; this avoids rejecting numerically equivalent results caused only by different addition orders.
 
 ---
 
@@ -125,6 +130,49 @@ Or use:
 ```bash
 make run
 ```
+
+By default, the executable writes to:
+
+```bash
+results/experiment_results.csv
+```
+
+An alternative CSV path can be supplied as the first argument:
+
+```bash
+./matrix_project results/custom_experiment.csv
+```
+
+### Benchmark Targets
+
+For quick validation during development, run:
+
+```bash
+make benchmark-smoke
+```
+
+This compiles a short benchmark configuration with one matrix size and one
+matrix pair, then writes:
+
+```bash
+results/experiment_results_smoke.csv
+```
+
+For the full experimental collection described above, run:
+
+```bash
+make benchmark-full
+```
+
+This writes:
+
+```bash
+results/experiment_results_sizes5_pairs10_seed42.csv
+```
+
+The smoke target is intended only to verify compilation, CSV generation,
+correctness validation and heap instrumentation. The full target is the one
+intended for later statistical aggregation.
 
 ### Debug Mode
 
