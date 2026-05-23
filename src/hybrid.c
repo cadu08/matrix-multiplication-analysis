@@ -1,6 +1,29 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "hybrid.h"
 #include "iterative.h"
+
+static void free_submatrices(
+    void *A11,
+    void *A12,
+    void *A21,
+    void *A22,
+    void *B11,
+    void *B12,
+    void *B21,
+    void *B22,
+    void *C11,
+    void *C12,
+    void *C21,
+    void *C22,
+    void *M1,
+    void *M2
+) {
+    free(A11); free(A12); free(A21); free(A22);
+    free(B11); free(B12); free(B21); free(B22);
+    free(C11); free(C12); free(C21); free(C22);
+    free(M1); free(M2);
+}
 
 static void add_matrix(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]) {
     for (int i = 0; i < n; i++) {
@@ -35,6 +58,22 @@ void multiply_hybrid(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matr
 
     matrix_value_t (*M1)[m] = malloc(sizeof(matrix_value_t[m][m]));
     matrix_value_t (*M2)[m] = malloc(sizeof(matrix_value_t[m][m]));
+
+    if (
+        A11 == NULL || A12 == NULL || A21 == NULL || A22 == NULL ||
+        B11 == NULL || B12 == NULL || B21 == NULL || B22 == NULL ||
+        C11 == NULL || C12 == NULL || C21 == NULL || C22 == NULL ||
+        M1 == NULL || M2 == NULL
+    ) {
+        fprintf(stderr, "Error allocating submatrices for hybrid multiplication\n");
+        free_submatrices(
+            A11, A12, A21, A22,
+            B11, B12, B21, B22,
+            C11, C12, C21, C22,
+            M1, M2
+        );
+        exit(EXIT_FAILURE);
+    }
 
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < m; j++) {
@@ -75,8 +114,10 @@ void multiply_hybrid(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matr
         }
     }
 
-    free(A11); free(A12); free(A21); free(A22);
-    free(B11); free(B12); free(B21); free(B22);
-    free(C11); free(C12); free(C21); free(C22);
-    free(M1); free(M2);
+    free_submatrices(
+        A11, A12, A21, A22,
+        B11, B12, B21, B22,
+        C11, C12, C21, C22,
+        M1, M2
+    );
 }
