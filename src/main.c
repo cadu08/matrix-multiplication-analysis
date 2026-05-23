@@ -12,7 +12,7 @@
 #define FIXED_SEED 42
 #define HYBRID_THRESHOLD 64
 
-typedef void (*matrix_multiply_fn)(int n, int A[n][n], int B[n][n], int C[n][n]);
+typedef void (*matrix_multiply_fn)(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]);
 
 void run_experiment(
     FILE *file,
@@ -20,19 +20,19 @@ void run_experiment(
     matrix_multiply_fn multiply,
     int n,
     int pair_id,
-    int *A_data,
-    int *B_data
+    matrix_value_t *A_data,
+    matrix_value_t *B_data
 ) {
-    int (*A)[n] = (int (*)[n]) A_data;
-    int (*B)[n] = (int (*)[n]) B_data;
+    matrix_value_t (*A)[n] = (matrix_value_t (*)[n]) A_data;
+    matrix_value_t (*B)[n] = (matrix_value_t (*)[n]) B_data;
 
-    int *C_data = malloc(n * n * sizeof(int));
+    matrix_value_t *C_data = malloc(n * n * sizeof(matrix_value_t));
     if (C_data == NULL) {
         fprintf(stderr, "Error allocating result matrix C\n");
         exit(1);
     }
 
-    int (*C)[n] = (int (*)[n]) C_data;
+    matrix_value_t (*C)[n] = (matrix_value_t (*)[n]) C_data;
 
     long memory_before = get_memory_usage_kb();
     double start = get_time();
@@ -57,7 +57,7 @@ void run_experiment(
     free(C_data);
 }
 
-void multiply_hybrid_wrapper(int n, int A[n][n], int B[n][n], int C[n][n]) {
+void multiply_hybrid_wrapper(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]) {
     multiply_hybrid(n, A, B, C, HYBRID_THRESHOLD);
 }
 
@@ -83,8 +83,8 @@ int main() {
         printf("Running experiments for size %d x %d...\n", n, n);
 
         for (int pair_id = 1; pair_id <= NUM_PAIRS; pair_id++) {
-            int *A = malloc(n * n * sizeof(int));
-            int *B = malloc(n * n * sizeof(int));
+            matrix_value_t *A = malloc(n * n * sizeof(matrix_value_t));
+            matrix_value_t *B = malloc(n * n * sizeof(matrix_value_t));
 
             if (A == NULL || B == NULL) {
                 fprintf(stderr, "Error allocating input matrices\n");

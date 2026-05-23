@@ -2,7 +2,7 @@
 #include "hybrid.h"
 #include "iterative.h"
 
-static void add_matrix(int n, int A[n][n], int B[n][n], int C[n][n]) {
+static void add_matrix(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]) {
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             C[i][j] = A[i][j] + B[i][j];
@@ -10,7 +10,7 @@ static void add_matrix(int n, int A[n][n], int B[n][n], int C[n][n]) {
     }
 }
 
-void multiply_hybrid(int n, int A[n][n], int B[n][n], int C[n][n], int threshold) {
+void multiply_hybrid(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n], int threshold) {
     if (n <= threshold) {
         multiply_iterative(n, A, B, C);
         return;
@@ -18,23 +18,23 @@ void multiply_hybrid(int n, int A[n][n], int B[n][n], int C[n][n], int threshold
 
     int m = n / 2;
 
-    int (*A11)[m] = malloc(sizeof(int[m][m]));
-    int (*A12)[m] = malloc(sizeof(int[m][m]));
-    int (*A21)[m] = malloc(sizeof(int[m][m]));
-    int (*A22)[m] = malloc(sizeof(int[m][m]));
+    matrix_value_t (*A11)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*A12)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*A21)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*A22)[m] = malloc(sizeof(matrix_value_t[m][m]));
 
-    int (*B11)[m] = malloc(sizeof(int[m][m]));
-    int (*B12)[m] = malloc(sizeof(int[m][m]));
-    int (*B21)[m] = malloc(sizeof(int[m][m]));
-    int (*B22)[m] = malloc(sizeof(int[m][m]));
+    matrix_value_t (*B11)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*B12)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*B21)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*B22)[m] = malloc(sizeof(matrix_value_t[m][m]));
 
-    int (*C11)[m] = malloc(sizeof(int[m][m]));
-    int (*C12)[m] = malloc(sizeof(int[m][m]));
-    int (*C21)[m] = malloc(sizeof(int[m][m]));
-    int (*C22)[m] = malloc(sizeof(int[m][m]));
+    matrix_value_t (*C11)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*C12)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*C21)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*C22)[m] = malloc(sizeof(matrix_value_t[m][m]));
 
-    int (*M1)[m] = malloc(sizeof(int[m][m]));
-    int (*M2)[m] = malloc(sizeof(int[m][m]));
+    matrix_value_t (*M1)[m] = malloc(sizeof(matrix_value_t[m][m]));
+    matrix_value_t (*M2)[m] = malloc(sizeof(matrix_value_t[m][m]));
 
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < m; j++) {

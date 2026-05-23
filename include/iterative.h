@@ -1,6 +1,8 @@
 #ifndef ITERATIVE_H
 #define ITERATIVE_H
 
-void multiply_iterative(int n, int A[n][n], int B[n][n], int C[n][n]);
+#include "matrix.h"
+
+void multiply_iterative(int n, matrix_value_t A[n][n], matrix_value_t B[n][n], matrix_value_t C[n][n]);
 
 #endif

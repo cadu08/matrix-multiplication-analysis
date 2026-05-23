@@ -58,7 +58,7 @@ The experiments use square matrices with the following sizes:
 
 For each size, 10 pairs of matrices `A` and `B` are generated.
 
-The matrices are filled with non-zero random integer values from 1 to 9. A fixed random seed is used to ensure reproducibility, meaning that the same input matrices can be generated again in future executions.
+The matrices are filled with pseudo-random floating-point values in the open interval `(0, 1)`, excluding both zero and one. A fixed random seed is used to ensure reproducibility, meaning that the same input matrices can be generated again in future executions unless the seed is changed.
 
 ---
 
