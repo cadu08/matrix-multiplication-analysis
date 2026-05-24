@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Matrix Multiplication Algorithms: Experimental Analysis</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #15202b;
+      --muted: #536170;
+      --paper: #f7f8f2;
+      --surface: #ffffff;
+      --line: #d9dfd6;
+      --teal: #11756f;
+      --blue: #285aa6;
+      --gold: #b57a22;
+      --red: #b54848;
+      --green: #397f45;
+      --deep: #132733;
+      --shadow: 0 22px 55px rgba(21, 32, 43, 0.13);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(17, 117, 111, 0.08) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(40, 90, 166, 0.06) 1px, transparent 1px),
+        linear-gradient(135deg, #fbfcf8 0%, var(--paper) 100%);
+      background-size: 44px 44px, 44px 44px, auto;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-items: center;
+      padding: clamp(28px, 4.6vw, 70px);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate3d(4vw, 0, 0) scale(0.985);
+      transition: opacity 420ms ease, transform 520ms cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate3d(0, 0, 0) scale(1);
+      z-index: 2;
+    }
+
+    .slide.previous {
+      transform: translate3d(-3vw, 0, 0) scale(0.99);
+    }
+
+    .content {
+      width: min(1220px, 100%);
+      margin: 0 auto;
+    }
+
+    .cover-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.38fr);
+      gap: clamp(28px, 4vw, 58px);
+      align-items: center;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      color: var(--teal);
+      font-size: clamp(12px, 1.2vw, 15px);
+      font-weight: 850;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 36px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--teal), var(--gold));
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1,
+    h2 {
+      letter-spacing: 0;
+      line-height: 1.02;
+    }
+
+    h1 {
+      max-width: 980px;
+      font-size: clamp(46px, 7.7vw, 98px);
+    }
+
+    h2 {
+      max-width: 1020px;
+      font-size: clamp(34px, 5.25vw, 72px);
+    }
+
+    .plot-slide h2 {
+      max-width: 980px;
+      font-size: clamp(30px, 4.2vw, 56px);
+    }
+
+    .compact-slide h2 {
+      font-size: clamp(28px, 3.9vw, 52px);
+    }
+
+    h3 {
+      font-size: clamp(18px, 2vw, 25px);
+      line-height: 1.18;
+    }
+
+    p,
+    li,
+    .small {
+      color: var(--muted);
+      font-size: clamp(16px, 1.65vw, 23px);
+      line-height: 1.42;
+    }
+
+    p {
+      max-width: 900px;
+      margin-top: 22px;
+    }
+
+    strong {
+      color: var(--ink);
+    }
+
+    code {
+      border-radius: 5px;
+      padding: 0.08em 0.32em;
+      background: rgba(17, 117, 111, 0.09);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.9em;
+    }
+
+    .meta {
+      display: grid;
+      gap: 12px;
+      align-self: stretch;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-top: 7px solid var(--teal);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow);
+    }
+
+    .meta img {
+      width: min(230px, 100%);
+      height: auto;
+      margin: 0 0 12px;
+    }
+
+    .meta b {
+      color: var(--ink);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 30px;
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid.five {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .card,
+    .metric,
+    .figure,
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.93);
+      box-shadow: var(--shadow);
+    }
+
+    .card,
+    .metric {
+      padding: 22px;
+    }
+
+    .metric {
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric b {
+      color: var(--ink);
+      font-size: clamp(34px, 4.5vw, 62px);
+      line-height: 0.95;
+      overflow-wrap: anywhere;
+    }
+
+    .metric b.label {
+      font-size: clamp(26px, 3.2vw, 44px);
+      line-height: 1.02;
+    }
+
+    .metric span,
+    .card span {
+      color: var(--muted);
+      font-size: clamp(15px, 1.45vw, 20px);
+      line-height: 1.35;
+    }
+
+    .accent-teal { border-left: 7px solid var(--teal); }
+    .accent-blue { border-left: 7px solid var(--blue); }
+    .accent-gold { border-left: 7px solid var(--gold); }
+    .accent-red { border-left: 7px solid var(--red); }
+    .accent-green { border-left: 7px solid var(--green); }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+      gap: clamp(24px, 4vw, 52px);
+      align-items: center;
+    }
+
+    .table-wrap {
+      overflow: hidden;
+      margin-top: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(14px, 1.45vw, 20px);
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      background: #eef3ed;
+      font-weight: 850;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td:last-child,
+    th:last-child {
+      text-align: right;
+    }
+
+    .figure {
+      margin-top: 26px;
+      padding: 16px;
+    }
+
+    .figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 58vh;
+      object-fit: contain;
+    }
+
+    .plot-slide .figure {
+      margin-top: 18px;
+      padding: 10px;
+    }
+
+    .plot-slide .figure img {
+      max-height: 49vh;
+    }
+
+    .formula {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      color: #f6fbf8;
+      background: var(--deep);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: clamp(17px, 1.8vw, 25px);
+      line-height: 1.35;
+    }
+
+    .block-matrix {
+      width: min(420px, 100%);
+      aspect-ratio: 1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      border: 3px solid var(--ink);
+      background: var(--ink);
+    }
+
+    .block-matrix div {
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-size: clamp(28px, 4vw, 54px);
+      font-weight: 900;
+      background: #edf4ef;
+    }
+
+    .block-matrix div:nth-child(2) { background: #f8eed9; }
+    .block-matrix div:nth-child(3) { background: #e7eef9; }
+    .block-matrix div:nth-child(4) { background: #f4e6e5; }
+
+    .tree {
+      display: grid;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .tree-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .node {
+      min-width: 58px;
+      min-height: 46px;
+      display: grid;
+      place-items: center;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--surface);
+      box-shadow: 0 8px 22px rgba(21, 32, 43, 0.08);
+      font-weight: 850;
+    }
+
+    .node.root {
+      min-width: 170px;
+      background: var(--deep);
+      color: #f8fbf7;
+    }
+
+    .node.small {
+      min-width: 34px;
+      min-height: 30px;
+      padding: 5px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .product-comparison {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      gap: 18px;
+      margin-top: 28px;
+      align-items: stretch;
+    }
+
+    .product-panel {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.93);
+      box-shadow: var(--shadow);
+    }
+
+    .product-panel h3 {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: baseline;
+    }
+
+    .badge {
+      display: inline-flex;
+      min-width: 54px;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: #f9fbf7;
+      background: var(--deep);
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .formula-list {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: clamp(12px, 1.1vw, 15px);
+      line-height: 1.28;
+    }
+
+    .compact-slide .product-comparison {
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .compact-slide .product-panel {
+      gap: 10px;
+      padding: 16px;
+    }
+
+    .compact-slide .formula-list {
+      gap: 5px;
+      font-size: clamp(11px, 0.98vw, 14px);
+      line-height: 1.18;
+    }
+
+    .compact-slide .product-panel p {
+      margin-top: 0;
+      font-size: clamp(14px, 1.25vw, 18px);
+      line-height: 1.3;
+    }
+
+    .compact-slide .call-growth {
+      margin-top: 12px;
+      gap: 8px;
+    }
+
+    .compact-slide .level-box {
+      padding: 9px 8px;
+    }
+
+    .compact-slide .level-box b {
+      font-size: clamp(18px, 2.1vw, 30px);
+    }
+
+    .call-growth {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .level-box {
+      padding: 12px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+      text-align: center;
+    }
+
+    .level-box b {
+      display: block;
+      color: var(--ink);
+      font-size: clamp(20px, 2.6vw, 36px);
+      line-height: 1;
+    }
+
+    .level-box span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .threshold {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 30px;
+    }
+
+    .threshold-panel {
+      min-height: 250px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .threshold-ladder {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .bar {
+      height: 16px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--teal), var(--blue));
+    }
+
+    .bar.cutoff {
+      background: linear-gradient(90deg, var(--green), var(--gold));
+    }
+
+    .ranking {
+      display: grid;
+      gap: 13px;
+      margin-top: 30px;
+    }
+
+    .rank-row {
+      display: grid;
+      grid-template-columns: minmax(160px, 0.32fr) minmax(0, 1fr) 88px;
+      gap: 14px;
+      align-items: center;
+      font-size: clamp(14px, 1.35vw, 19px);
+    }
+
+    .rank-track {
+      height: 22px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #e8ece6;
+    }
+
+    .rank-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--teal));
+    }
+
+    .rank-fill.bad {
+      background: linear-gradient(90deg, var(--gold), var(--red));
+    }
+
+    .list {
+      display: grid;
+      gap: 13px;
+      margin: 28px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .list li {
+      padding: 15px 18px;
+      border-left: 6px solid var(--teal);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 10px 26px rgba(21, 32, 43, 0.08);
+      color: var(--ink);
+    }
+
+    .people {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .person {
+      width: min(240px, 42vw);
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .person img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 7px;
+      margin-bottom: 12px;
+    }
+
+    .person b {
+      display: block;
+      color: var(--ink);
+      font-size: 18px;
+    }
+
+    .nav {
+      position: fixed;
+      left: 22px;
+      right: 22px;
+      bottom: 18px;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: 92px 1fr 92px;
+      gap: 14px;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .nav button {
+      pointer-events: auto;
+      height: 42px;
+      border: 1px solid rgba(21, 32, 43, 0.16);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 8px 25px rgba(21, 32, 43, 0.11);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .progress-shell {
+      height: 9px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(21, 32, 43, 0.12);
+      box-shadow: inset 0 1px 2px rgba(21, 32, 43, 0.1);
+    }
+
+    .progress {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--teal), var(--gold), var(--red), var(--blue));
+      transition: width 300ms ease;
+    }
+
+    .counter {
+      position: fixed;
+      top: 18px;
+      right: 24px;
+      z-index: 20;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        overflow: auto;
+      }
+
+      .deck {
+        height: auto;
+        overflow: visible;
+      }
+
+      .slide,
+      .slide.previous {
+        position: relative;
+        min-height: 100vh;
+        opacity: 1;
+        pointer-events: auto;
+        transform: none;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .cover-grid,
+      .split,
+      .grid,
+      .grid.three,
+      .grid.five,
+      .threshold,
+      .product-comparison,
+      .call-growth {
+        grid-template-columns: 1fr;
+      }
+
+      .nav,
+      .counter {
+        display: none;
+      }
+
+      .rank-row {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+    }
+
+    @media print {
+      body {
+        overflow: visible;
+        background: #fff;
+      }
+
+      .deck {
+        height: auto;
+        overflow: visible;
+      }
+
+      .slide {
+        position: relative;
+        min-height: 100vh;
+        opacity: 1;
+        transform: none;
+        page-break-after: always;
+      }
+
+      .nav,
+      .counter {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-live="polite">
+    <section class="slide active">
+      <div class="content cover-grid">
+        <div>
+          <div class="kicker">Algorithms CMP625 | 2026/1</div>
+          <h1>Matrix Multiplication Algorithms</h1>
+          <p>Experimental analysis of classical, recursive, hybrid, and Strassen-based implementations in C.</p>
+        </div>
+        <aside class="meta">
+          <img src="visual_identity/logo/inf-logo-2.0.svg" alt="Institute of Informatics logo">
+          <span><b>Students</b><br>Carlos Eduardo A. Ferreira<br>Khalid Usman</span>
+          <span><b>Professor</b><br>Nicolas Bruno Maillard</span>
+          <span><b>Focus</b><br>Time, heap usage, correctness, and practical trade-offs</span>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <div class="kicker">Research question</div>
+        <h2>When does asymptotic theory become visible in real measurements?</h2>
+        <p>The project compares five implementations that compute the same result, <code>C = A x B</code>, but organize the work differently.</p>
+        <div class="grid five">
+          <div class="card accent-teal"><h3>Iterative</h3><span>Three nested loops, direct baseline, <code>Theta(n^3)</code>.</span></div>
+          <div class="card accent-blue"><h3>D&amp;C</h3><span>Eight recursive block products, still <code>Theta(n^3)</code>.</span></div>
+          <div class="card accent-green"><h3>Hybrid D&amp;C</h3><span>Recursive above a threshold, iterative below it.</span></div>
+          <div class="card accent-red"><h3>Strassen</h3><span>Seven recursive products, <code>Theta(n^log2(7))</code>.</span></div>
+          <div class="card accent-gold"><h3>Hybrid Strassen</h3><span>Strassen at upper levels, iterative kernel at small sizes.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content split">
+        <div>
+          <div class="kicker">Classical baseline</div>
+          <h2>Direct multiplication explains the cubic baseline</h2>
+          <p>There are <code>n^2</code> output cells, and each cell computes an inner product with <code>n</code> multiplications and additions.</p>
+          <div class="formula">C[i][j] = sum A[i][k]B[k][j]<br>T(n) = n x n x n = Theta(n^3)</div>
+        </div>
+        <div class="grid">
+          <div class="metric accent-teal"><b>n^2</b><span>entries in the output matrix</span></div>
+          <div class="metric accent-blue"><b>n</b><span>terms per inner product</span></div>
+          <div class="metric accent-green"><b>0 B</b><span>tracked heap in the iterative algorithm</span></div>
+          <div class="metric accent-gold"><b class="label">Reference</b><span>used to validate all other algorithms</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content split">
+        <div>
+          <div class="kicker">Block decomposition</div>
+          <h2>Recursive algorithms change the organization of the work</h2>
+          <p>Splitting matrices into four blocks creates smaller subproblems. The key question is how many recursive multiplications each level performs.</p>
+          <div class="formula">D&amp;C: T(n) = 8T(n/2) + Theta(n^2)<br>Strassen: T(n) = 7T(n/2) + Theta(n^2)</div>
+        </div>
+        <div class="block-matrix" aria-label="Matrix divided into four blocks">
+          <div>A11</div>
+          <div>A12</div>
+          <div>A21</div>
+          <div>A22</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide compact-slide">
+      <div class="content">
+        <div class="kicker">Why Strassen helps</div>
+        <h2>Saved multiplication compounds through recursion</h2>
+        <div class="product-comparison">
+          <div class="product-panel accent-blue">
+            <h3>Classical block product <span class="badge">8 calls</span></h3>
+            <ul class="formula-list">
+              <li>C11 = A11B11 + A12B21</li>
+              <li>C12 = A11B12 + A12B22</li>
+              <li>C21 = A21B11 + A22B21</li>
+              <li>C22 = A21B12 + A22B22</li>
+            </ul>
+            <p class="small">Four output blocks, two products each: <code>8</code> recursive multiplications of size <code>n/2</code>.</p>
+          </div>
+          <div class="product-panel accent-red">
+            <h3>Strassen products <span class="badge">7 calls</span></h3>
+            <ul class="formula-list">
+              <li>M1 = (A11 + A22)(B11 + B22)</li>
+              <li>M2 = (A21 + A22)B11</li>
+              <li>M3 = A11(B12 - B22)</li>
+              <li>M4 = A22(B21 - B11)</li>
+              <li>M5 = (A11 + A12)B22</li>
+              <li>M6 = (A21 - A11)(B11 + B12)</li>
+              <li>M7 = (A12 - A22)(B21 + B22)</li>
+            </ul>
+            <p class="small">Then <code>C11</code>, <code>C12</code>, <code>C21</code>, and <code>C22</code> are reconstructed from <code>M1...M7</code>. The added sums cost <code>Theta(n^2)</code>; the saved recursive call changes the branching factor.</p>
+          </div>
+        </div>
+        <div class="call-growth" aria-label="Growth of recursive calls">
+          <div class="level-box"><b>8^1 vs 7^1</b><span>after 1 level</span></div>
+          <div class="level-box"><b>64 vs 49</b><span>after 2 levels</span></div>
+          <div class="level-box"><b>512 vs 343</b><span>after 3 levels</span></div>
+          <div class="level-box"><b>4096 vs 2401</b><span>after 4 levels</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <div class="kicker">Hybrid idea</div>
+        <h2>The threshold is the practical bridge between theory and hardware</h2>
+        <p>Both hybrid algorithms use recursive structure only while subproblems are large. Once <code>n <= 64</code>, they switch to the iterative kernel.</p>
+        <div class="threshold">
+          <div class="threshold-panel accent-green">
+            <h3>What the threshold avoids</h3>
+            <ul class="list">
+              <li>Recursive calls on tiny matrices</li>
+              <li>Temporary allocation overhead</li>
+              <li>Extra copying and recombination work</li>
+            </ul>
+          </div>
+          <div class="threshold-panel accent-teal">
+            <h3>Execution path for n = 1024</h3>
+            <div class="threshold-ladder">
+              <div class="step"><span>1024</span><div class="bar" style="width:100%"></div></div>
+              <div class="step"><span>512</span><div class="bar" style="width:72%"></div></div>
+              <div class="step"><span>256</span><div class="bar" style="width:52%"></div></div>
+              <div class="step"><span>128</span><div class="bar" style="width:36%"></div></div>
+              <div class="step"><span>64</span><div class="bar cutoff" style="width:24%"></div></div>
+            </div>
+            <p class="small">At 64, recursion stops and the iterative implementation takes over.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <div class="kicker">Experimental protocol</div>
+        <h2>The benchmark was designed to make comparisons reproducible</h2>
+        <div class="grid three">
+          <div class="metric accent-teal"><b>5</b><span>matrix sizes: 64, 128, 256, 512, 1024</span></div>
+          <div class="metric accent-blue"><b>10</b><span>deterministic pairs per size, generated with seed 42</span></div>
+          <div class="metric accent-green"><b>250</b><span>algorithm runs in the full aggregated experiment</span></div>
+        </div>
+        <ul class="list">
+          <li>Timing includes only the selected multiplication call.</li>
+          <li>Each result is validated against the iterative reference using floating-point tolerances.</li>
+          <li>Tracked heap metrics isolate allocations performed by the algorithm implementations.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <div class="kicker">Central result</div>
+        <h2>Hybrid Strassen is the fastest algorithm in 4 of 5 sizes</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Matrix size</th><th>Best algorithm</th><th>Mean time</th></tr></thead>
+            <tbody>
+              <tr><td>64</td><td>Hybrid Strassen</td><td>233.9 us</td></tr>
+              <tr><td>128</td><td>Hybrid D&amp;C</td><td>2.11 ms</td></tr>
+              <tr><td>256</td><td>Hybrid Strassen</td><td>12.69 ms</td></tr>
+              <tr><td>512</td><td>Hybrid Strassen</td><td>79.79 ms</td></tr>
+              <tr><td>1024</td><td>Hybrid Strassen</td><td>560.21 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The only exception is at <code>128 x 128</code>, where the two hybrid approaches are very close and Hybrid D&amp;C has a small advantage.</p>
+      </div>
+    </section>
+
+    <section class="slide plot-slide">
+      <div class="content">
+        <div class="kicker">Execution time</div>
+        <h2>Mean execution time on a log scale</h2>
+        <div class="figure">
+          <img src="plots/mean_execution_time_by_algorithm.png" alt="Mean execution time by algorithm and matrix size">
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <div class="kicker">Largest tested size</div>
+        <h2>At 1024, thresholded Strassen is already 6.6x faster than the baseline</h2>
+        <div class="ranking" aria-label="Algorithm ranking at 1024 by mean time">
+          <div class="rank-row"><strong>Hybrid Strassen</strong><div class="rank-track"><div class="rank-fill" style="width:2%"></div></div><span>0.560 s</span></div>
+          <div class="rank-row"><strong>Hybrid D&amp;C</strong><div class="rank-track"><div class="rank-fill" style="width:3%"></div></div><span>0.803 s</span></div>
+          <div class="rank-row"><strong>Iterative</strong><div class="rank-track"><div class="rank-fill bad" style="width:12%"></div></div><span>3.681 s</span></div>
+          <div class="rank-row"><strong>Pure Strassen</strong><div class="rank-track"><div class="rank-fill bad" style="width:52%"></div></div><span>15.676 s</span></div>
+          <div class="rank-row"><strong>Pure D&amp;C</strong><div class="rank-track"><div class="rank-fill bad" style="width:100%"></div></div><span>30.250 s</span></div>
+        </div>
+        <p>The main lesson is not simply "Strassen wins"; pure Strassen loses badly. The practical win comes from combining Strassen's upper-level reduction with an iterative cutoff.</p>
+      </div>
+    </section>
+
+    <section class="slide plot-slide">
+      <div class="content">
+        <div class="kicker">Observed growth</div>
+        <h2>Empirical growth exponents</h2>
+        <div class="figure">
+          <img src="plots/observed_growth_exponent_between_consecutive_sizes.png" alt="Observed growth exponent between consecutive sizes">
+        </div>
+        <p class="small">The estimate uses <code>log2(T(2n) / T(n))</code>. Hybrid Strassen approaches the expected Strassen exponent near the largest sizes.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content split">
+        <div>
+          <div class="kicker">Theory versus practice</div>
+          <h2>Same asymptotic class, very different behavior</h2>
+          <p>Iterative, pure D&amp;C, and Hybrid D&amp;C are all <code>Theta(n^3)</code>. Still, at 1024, pure D&amp;C is much slower because its recursion creates allocation, copying, and recombination overhead.</p>
+        </div>
+        <div class="grid">
+          <div class="metric accent-green"><b>1.4x</b><span>Hybrid D&amp;C is only 1.4x slower than the winner at 1024</span></div>
+          <div class="metric accent-red"><b>54.0x</b><span>Pure D&amp;C is 54.0x slower than Hybrid Strassen at 1024</span></div>
+          <div class="metric accent-blue"><b>O(n^3)</b><span>classifies growth, not cache locality or constants</span></div>
+          <div class="metric accent-gold"><b>64</b><span>the threshold that prevents tiny recursive calls</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide plot-slide">
+      <div class="content">
+        <div class="kicker">Memory cost</div>
+        <h2>Tracked heap peak by algorithm</h2>
+        <div class="figure">
+          <img src="plots/tracked_heap_peak_by_algorithm.png" alt="Tracked heap peak by algorithm and matrix size">
+        </div>
+        <p class="small">At <code>1024 x 1024</code>, Hybrid Strassen peaks at about 55.8 MiB of tracked heap, while the iterative baseline reports 0 B because it does not allocate temporary matrices through the tracker.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content split">
+        <div>
+          <div class="kicker">Correctness</div>
+          <h2>Every aggregated group passed validation</h2>
+          <p>Recursive algorithms change floating-point operation order, especially Strassen with extra additions and subtractions. The experiment therefore validates with absolute and relative tolerances instead of bitwise equality.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Algorithm at 1024</th><th>Mean max relative error</th></tr></thead>
+            <tbody>
+              <tr><td>Hybrid D&amp;C</td><td>4.03e-15</td></tr>
+              <tr><td>Hybrid Strassen</td><td>2.35e-14</td></tr>
+              <tr><td>Pure Strassen</td><td>9.56e-13</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide plot-slide">
+      <div class="content">
+        <div class="kicker">Timing variation</div>
+        <h2>Timing distribution across pairs</h2>
+        <div class="figure">
+          <img src="plots/distribution_of_execution_time_across_matrix_pairs.png" alt="Distribution of execution time across matrix pairs">
+        </div>
+        <p class="small">The smallest sizes are very short runs, so they are more sensitive to measurement noise. The larger sizes provide the most reliable interpretation of growth.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <div class="kicker">Main conclusions</div>
+        <h2>The experimental story is about controlled overhead</h2>
+        <ul class="list">
+          <li>Hybrid algorithms are the practical winners because they stop recursion before overhead dominates.</li>
+          <li>Pure Strassen demonstrates that a better exponent is not automatically a faster program.</li>
+          <li>Pure divide and conquer confirms that equal asymptotic complexity can hide large constant and memory costs.</li>
+          <li>Time, tracked heap, and numerical error must be interpreted together for a rigorous comparison.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content split">
+        <div>
+          <div class="kicker">Final slide</div>
+          <h2>Thank you</h2>
+          <p>Matrix Multiplication Algorithms: theoretical and experimental analysis of five implementations.</p>
+        </div>
+        <div class="people">
+          <div class="person">
+            <img src="presenters_pictures/Carlos.jpg" alt="Carlos Eduardo A. Ferreira">
+            <b>Carlos Eduardo A. Ferreira</b>
+          </div>
+          <div class="person">
+            <img src="presenters_pictures/Khalid.png" alt="Khalid Usman">
+            <b>Khalid Usman</b>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="counter" id="counter">1 / 17</div>
+  <nav class="nav" aria-label="Slide navigation">
+    <button type="button" id="prev" aria-label="Previous slide">&#8592;</button>
+    <div class="progress-shell" aria-hidden="true"><div class="progress" id="progress"></div></div>
+    <button type="button" id="next" aria-label="Next slide">&#8594;</button>
+  </nav>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const progress = document.getElementById("progress");
+    const counter = document.getElementById("counter");
+    const prev = document.getElementById("prev");
+    const next = document.getElementById("next");
+    let current = 0;
+
+    function updateSlide(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === current);
+        slide.classList.toggle("previous", i < current);
+      });
+      progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      history.replaceState(null, "", `#${current + 1}`);
+    }
+
+    function fromHash() {
+      const parsed = Number.parseInt(location.hash.replace("#", ""), 10);
+      if (Number.isFinite(parsed)) {
+        updateSlide(parsed - 1);
+      }
+    }
+
+    prev.addEventListener("click", () => updateSlide(current - 1));
+    next.addEventListener("click", () => updateSlide(current + 1));
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+        event.preventDefault();
+        updateSlide(current + 1);
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        updateSlide(current - 1);
+      }
+      if (event.key === "Home") {
+        updateSlide(0);
+      }
+      if (event.key === "End") {
+        updateSlide(slides.length - 1);
+      }
+    });
+
+    window.addEventListener("hashchange", fromHash);
+    fromHash();
+    updateSlide(current);
+  </script>
+</body>
+</html>
