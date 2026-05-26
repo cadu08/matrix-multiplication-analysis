@@ -334,6 +334,44 @@
       line-height: 1.35;
     }
 
+    .motivation-map {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      margin-top: 24px;
+    }
+
+    .motivation-node {
+      min-height: 130px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.93);
+      box-shadow: var(--shadow);
+    }
+
+    .motivation-node b {
+      display: block;
+      color: var(--ink);
+      font-size: clamp(20px, 2.25vw, 34px);
+      line-height: 1.05;
+    }
+
+    .motivation-node span {
+      display: block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: clamp(14px, 1.25vw, 18px);
+      line-height: 1.3;
+    }
+
+    .motivation-arrow {
+      color: var(--gold);
+      font-size: clamp(34px, 4vw, 56px);
+      font-weight: 850;
+    }
+
     .unit-note {
       display: inline-block;
       margin-top: 14px;
@@ -557,45 +595,168 @@
       font-size: 13px;
     }
 
-    .threshold {
+    .overhead-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
       gap: 18px;
-      margin-top: 30px;
+      margin-top: 18px;
+      align-items: stretch;
     }
 
-    .threshold-panel {
-      min-height: 250px;
-      padding: 22px;
+    .overhead-panel {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      padding: 18px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.93);
       box-shadow: var(--shadow);
     }
 
-    .threshold-ladder {
+    .overhead-panel h3 {
+      font-size: clamp(18px, 1.8vw, 24px);
+    }
+
+    .cost-flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .cost-step {
+      min-height: 86px;
+      display: grid;
+      place-items: center;
+      padding: 10px 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+      color: var(--ink);
+      text-align: center;
+      font-size: clamp(12px, 1.05vw, 15px);
+      font-weight: 850;
+      line-height: 1.15;
+    }
+
+    .cost-step:nth-child(2) { background: #eef6f5; }
+    .cost-step:nth-child(3) { background: #f8eed9; }
+    .cost-step:nth-child(4) { background: #e7eef9; }
+    .cost-step:nth-child(5) { background: #f4e6e5; }
+
+    .overhead-examples {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .example-chip {
+      min-height: 74px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+    }
+
+    .example-chip b {
+      display: block;
+      color: var(--ink);
+      font-size: clamp(14px, 1.25vw, 18px);
+      line-height: 1.1;
+    }
+
+    .example-chip span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: clamp(12px, 1vw, 14px);
+      line-height: 1.2;
+    }
+
+    .mini-equation {
       display: grid;
       gap: 8px;
-      margin-top: 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
     }
 
-    .step {
+    .mini-equation li {
       display: grid;
-      grid-template-columns: 84px 1fr;
+      grid-template-columns: 130px 1fr;
       gap: 10px;
       align-items: center;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fbfcfb;
       color: var(--muted);
-      font-size: 15px;
+      font-size: clamp(13px, 1.15vw, 17px);
+      line-height: 1.25;
     }
 
-    .bar {
-      height: 16px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--teal), var(--blue));
+    .mini-equation b {
+      color: var(--ink);
+      font-size: clamp(18px, 2vw, 28px);
+      line-height: 1;
     }
 
-    .bar.cutoff {
-      background: linear-gradient(90deg, var(--green), var(--gold));
+    .cutoff-note {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 10px 12px;
+      border-left: 7px solid var(--gold);
+      border-radius: 8px;
+      background: #fffaf0;
+      color: var(--muted);
+      font-size: clamp(13px, 1.15vw, 17px);
+      line-height: 1.25;
+    }
+
+    .setup-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1.15fr);
+      gap: 12px;
+      margin-top: 14px;
+      align-items: stretch;
+    }
+
+    .setup-stat,
+    .setup-note {
+      padding: 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.93);
+      box-shadow: 0 10px 26px rgba(21, 32, 43, 0.08);
+    }
+
+    .setup-stat b {
+      display: block;
+      color: var(--ink);
+      font-size: clamp(28px, 3.2vw, 44px);
+      line-height: 0.95;
+    }
+
+    .setup-stat span,
+    .setup-note span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: clamp(12px, 1.05vw, 15px);
+      line-height: 1.22;
+    }
+
+    .setup-note {
+      display: grid;
+      align-content: center;
+      border-left: 7px solid var(--green);
+    }
+
+    .setup-note b {
+      color: var(--ink);
+      font-size: clamp(15px, 1.35vw, 19px);
+      line-height: 1.15;
     }
 
     .ranking {
@@ -789,11 +950,20 @@
       .grid,
       .grid.three,
       .grid.five,
-      .threshold,
       .product-comparison,
       .call-growth,
-      .plot-explain {
+      .plot-explain,
+      .motivation-map,
+      .overhead-grid,
+      .cost-flow,
+      .overhead-examples,
+      .setup-strip {
         grid-template-columns: 1fr;
+      }
+
+      .motivation-arrow {
+        transform: rotate(90deg);
+        justify-self: center;
       }
 
       .nav,
@@ -853,132 +1023,72 @@
 
     <section class="slide">
       <div class="content">
-        <div class="kicker">Research question</div>
-        <h2>When does asymptotic theory become visible in real measurements?</h2>
-        <p>The project compares five implementations that compute the same result, <code>C = A x B</code>, but organize the work differently.</p>
+        <div class="kicker">Context and scope</div>
+        <h2>Compared algorithms</h2>
+        <p>All versions compute <code>C = A x B</code>. The difference is how the work is organized.</p>
         <div class="grid five">
-          <div class="card accent-teal"><h3>Iterative</h3><span>Three nested loops, direct baseline, <code>Theta(n^3)</code>.</span></div>
-          <div class="card accent-blue"><h3>D&amp;C</h3><span>Eight recursive block products, still <code>Theta(n^3)</code>.</span></div>
-          <div class="card accent-green"><h3>Hybrid D&amp;C</h3><span>Recursive above a threshold, iterative below it.</span></div>
-          <div class="card accent-red"><h3>Strassen</h3><span>Seven recursive products, <code>Theta(n^log2(7))</code>.</span></div>
-          <div class="card accent-gold"><h3>Hybrid Strassen</h3><span>Strassen at upper levels, iterative kernel at small sizes.</span></div>
+          <div class="card accent-teal"><h3>Iterative</h3><span>Direct baseline. Three loops. <code>O(n^3)</code>.</span></div>
+          <div class="card accent-blue"><h3>D&amp;C</h3><span>Eight recursive block products. <code>O(n^3)</code>.</span></div>
+          <div class="card accent-green"><h3>Hybrid D&amp;C</h3><span>D&amp;C for large blocks. Iterative below <code>n = 64</code>.</span></div>
+          <div class="card accent-red"><h3>Strassen</h3><span>Seven recursive products. <code>O(n^log2(7))</code>, about <code>O(n^2.81)</code>.</span></div>
+          <div class="card accent-gold"><h3>Hybrid Strassen</h3><span>Strassen for large blocks. Iterative below <code>n = 64</code>.</span></div>
         </div>
-      </div>
-    </section>
-
-    <section class="slide">
-      <div class="content split">
-        <div>
-          <div class="kicker">Classical baseline</div>
-          <h2>Direct multiplication explains the cubic baseline</h2>
-          <p>There are <code>n^2</code> output cells, and each cell computes an inner product with <code>n</code> multiplications and additions.</p>
-          <div class="formula">C[i][j] = sum A[i][k]B[k][j]<br>T(n) = n x n x n = O(n^3)</div>
-        </div>
-        <div class="grid stack">
-          <div class="metric accent-green"><b>O(n^3)</b><span>total work for the classical baseline</span></div>
-          <div class="metric accent-gold"><b class="label">Reference</b><span>used to validate all other algorithms</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="slide">
-      <div class="content split">
-        <div>
-          <div class="kicker">Block decomposition</div>
-          <h2>Recursive algorithms change the organization of the work</h2>
-          <p>Splitting matrices into four blocks creates smaller subproblems. The key question is how many recursive multiplications each level performs.</p>
-          <div class="formula">D&amp;C: T(n) = 8T(n/2) + Theta(n^2)<br>Strassen: T(n) = 7T(n/2) + Theta(n^2)</div>
-        </div>
-        <div class="block-matrix" aria-label="Matrix divided into four blocks">
-          <div>A11</div>
-          <div>A12</div>
-          <div>A21</div>
-          <div>A22</div>
-        </div>
+        <div class="formula">Iterative: C<sub>ij</sub> = &sum;<sub>k=1</sub><sup>n</sup> A<sub>ik</sub>B<sub>kj</sub>, for 1 &le; i,j &le; n<br>D&amp;C: T(n) = 8T(n/2) + O(n^2)<br>Strassen: T(n) = 7T(n/2) + O(n^2)</div>
       </div>
     </section>
 
     <section class="slide compact-slide">
       <div class="content">
-        <div class="kicker">Why Strassen helps</div>
-        <h2>Saved multiplication compounds through recursion</h2>
-        <div class="product-comparison">
-          <div class="product-panel accent-blue">
-            <h3>Classical block product <span class="badge">8 calls</span></h3>
-            <ul class="formula-list">
-              <li>C11 = A11B11 + A12B21</li>
-              <li>C12 = A11B12 + A12B22</li>
-              <li>C21 = A21B11 + A22B21</li>
-              <li>C22 = A21B12 + A22B22</li>
-            </ul>
-            <p class="small">Four output blocks, two products each: <code>8</code> recursive multiplications of size <code>n/2</code>.</p>
+        <div class="kicker">Design and setup</div>
+        <h2>Hybrid choice and test setup</h2>
+        <div class="motivation-map">
+          <div class="motivation-node accent-teal">
+            <b>Gain</b>
+            <span>Fewer block products at upper levels.</span>
           </div>
-          <div class="product-panel accent-red">
-            <h3>Strassen products <span class="badge">7 calls</span></h3>
-            <ul class="formula-list">
-              <li>M1 = (A11 + A22)(B11 + B22)</li>
-              <li>M2 = (A21 + A22)B11</li>
-              <li>M3 = A11(B12 - B22)</li>
-              <li>M4 = A22(B21 - B11)</li>
-              <li>M5 = (A11 + A12)B22</li>
-              <li>M6 = (A21 - A11)(B11 + B12)</li>
-              <li>M7 = (A12 - A22)(B21 + B22)</li>
-            </ul>
-            <p class="small">Then <code>C11</code>, <code>C12</code>, <code>C21</code>, and <code>C22</code> are reconstructed from <code>M1...M7</code>. The added sums cost <code>Theta(n^2)</code>; the saved recursive call changes the branching factor.</p>
+          <div class="motivation-arrow" aria-hidden="true">&rarr;</div>
+          <div class="motivation-node accent-blue">
+            <b>Overhead</b>
+            <span>Extra work around each block product.</span>
+          </div>
+          <div class="motivation-arrow" aria-hidden="true">&rarr;</div>
+          <div class="motivation-node accent-gold">
+            <b>Cutoff</b>
+            <span>At <code>n = 64</code>, use the iterative kernel.</span>
           </div>
         </div>
-        <div class="call-growth" aria-label="Growth of recursive calls">
-          <div class="level-box"><b>8^1 vs 7^1</b><span>after 1 level</span></div>
-          <div class="level-box"><b>64 vs 49</b><span>after 2 levels</span></div>
-          <div class="level-box"><b>512 vs 343</b><span>after 3 levels</span></div>
-          <div class="level-box"><b>4096 vs 2401</b><span>after 4 levels</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="slide">
-      <div class="content">
-        <div class="kicker">Hybrid idea</div>
-        <h2>The threshold is the practical bridge between theory and hardware</h2>
-        <p>Both hybrid algorithms use recursive structure only while subproblems are large. Once <code>n <= 64</code>, they switch to the iterative kernel.</p>
-        <div class="threshold">
-          <div class="threshold-panel accent-green">
-            <h3>What the threshold avoids</h3>
-            <ul class="list">
-              <li>Recursive calls on tiny matrices</li>
-              <li>Temporary allocation overhead</li>
-              <li>Extra copying and recombination work</li>
-            </ul>
-          </div>
-          <div class="threshold-panel accent-teal">
-            <h3>Execution path for n = 1024</h3>
-            <div class="threshold-ladder">
-              <div class="step"><span>1024</span><div class="bar" style="width:100%"></div></div>
-              <div class="step"><span>512</span><div class="bar" style="width:72%"></div></div>
-              <div class="step"><span>256</span><div class="bar" style="width:52%"></div></div>
-              <div class="step"><span>128</span><div class="bar" style="width:36%"></div></div>
-              <div class="step"><span>64</span><div class="bar cutoff" style="width:24%"></div></div>
+        <div class="overhead-grid">
+          <div class="overhead-panel accent-blue">
+            <h3>D&amp;C / Strassen extra cost</h3>
+            <div class="cost-flow" aria-label="Recursive overhead steps">
+              <div class="cost-step">call stack</div>
+              <div class="cost-step">split blocks</div>
+              <div class="cost-step">temporary matrices</div>
+              <div class="cost-step">add / subtract</div>
+              <div class="cost-step">combine result</div>
             </div>
-            <p class="small">At 64, recursion stops and the iterative implementation takes over.</p>
+            <div class="overhead-examples" aria-label="Brief overhead examples">
+              <div class="example-chip"><b>Memory</b><span>allocate/free temporary blocks</span></div>
+              <div class="example-chip"><b>Data movement</b><span>copy quadrants and partial results</span></div>
+              <div class="example-chip"><b>Strassen setup</b><span>build auxiliary sums before products</span></div>
+              <div class="example-chip"><b>Small n</b><span>setup cost becomes visible</span></div>
+            </div>
+          </div>
+          <div class="overhead-panel accent-red">
+            <h3>One recursive level</h3>
+            <ul class="mini-equation">
+              <li><b>D&amp;C</b><span><code>8</code> products + block handling</span></li>
+              <li><b>Strassen</b><span><code>7</code> products + more auxiliary sums</span></li>
+              <li><b>Small blocks</b><span>less arithmetic to amortize setup cost</span></li>
+            </ul>
+            <div class="cutoff-note">Hybrid rule: keep recursion for larger blocks; stop at <code>64 x 64</code>.</div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section class="slide">
-      <div class="content">
-        <div class="kicker">Experimental protocol</div>
-        <h2>The benchmark was designed to make comparisons reproducible</h2>
-        <div class="grid three">
-          <div class="metric accent-teal"><b>5</b><span>matrix sizes: 64, 128, 256, 512, 1024</span></div>
-          <div class="metric accent-blue"><b>10</b><span>deterministic pairs per size, generated with seed 42</span></div>
-          <div class="metric accent-green"><b>250</b><span>algorithm runs in the full aggregated experiment</span></div>
+        <div class="setup-strip" aria-label="Benchmark setup summary">
+          <div class="setup-stat accent-teal"><b>5</b><span>matrix sizes: 64, 128, 256, 512, 1024</span></div>
+          <div class="setup-stat accent-blue"><b>10</b><span>deterministic pairs per size, seed 42</span></div>
+          <div class="setup-note"><b>Measured per algorithm run</b><span>time, correctness, numerical error, tracked heap peak</span></div>
         </div>
-        <ul class="list">
-          <li>Timing includes only the selected multiplication call.</li>
-          <li>Each result is validated against the iterative reference using floating-point tolerances.</li>
-          <li>Tracked heap metrics isolate allocations performed by the algorithm implementations.</li>
-        </ul>
       </div>
     </section>
 
@@ -1012,21 +1122,6 @@
       </div>
     </section>
 
-    <section class="slide">
-      <div class="content">
-        <div class="kicker">Largest tested size</div>
-        <h2>At 1024, thresholded Strassen is already 6.6x faster than the baseline</h2>
-        <div class="ranking" aria-label="Algorithm ranking at 1024 by mean time">
-          <div class="rank-row"><strong>Hybrid Strassen</strong><div class="rank-track"><div class="rank-fill" style="width:2%"></div></div><span>0.560 s</span></div>
-          <div class="rank-row"><strong>Hybrid D&amp;C</strong><div class="rank-track"><div class="rank-fill" style="width:3%"></div></div><span>0.803 s</span></div>
-          <div class="rank-row"><strong>Iterative</strong><div class="rank-track"><div class="rank-fill bad" style="width:12%"></div></div><span>3.681 s</span></div>
-          <div class="rank-row"><strong>Pure Strassen</strong><div class="rank-track"><div class="rank-fill bad" style="width:52%"></div></div><span>15.676 s</span></div>
-          <div class="rank-row"><strong>Pure D&amp;C</strong><div class="rank-track"><div class="rank-fill bad" style="width:100%"></div></div><span>30.250 s</span></div>
-        </div>
-        <p>The main lesson is not simply "Strassen wins"; pure Strassen loses badly. The practical win comes from combining Strassen's upper-level reduction with an iterative cutoff.</p>
-      </div>
-    </section>
-
     <section class="slide plot-slide">
       <div class="content">
         <div class="kicker">Observed growth</div>
@@ -1037,22 +1132,6 @@
         <div class="plot-explain">
           <div class="example-note"><b>Example:</b> if doubling <code>n</code> makes time about <code>8x</code> larger, then <code>log2(8) = 3</code>, so the observed growth is cubic.</div>
           <p class="small">The estimate uses <code>log2(T(2n) / T(n))</code>. Strassen expects <code>log2(7) ≈ 2.81</code>, and Hybrid Strassen approaches that exponent near the largest sizes.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="slide">
-      <div class="content split">
-        <div>
-          <div class="kicker">Theory versus practice</div>
-          <h2>Same asymptotic class, very different behavior</h2>
-          <p>Iterative, pure D&amp;C, and Hybrid D&amp;C are all <code>Theta(n^3)</code>. Still, at 1024, pure D&amp;C is much slower because its recursion creates allocation, copying, and recombination overhead.</p>
-        </div>
-        <div class="grid">
-          <div class="metric accent-green"><b>1.4x</b><span>Hybrid D&amp;C is only 1.4x slower than the winner at 1024</span></div>
-          <div class="metric accent-red"><b>54.0x</b><span>Pure D&amp;C is 54.0x slower than Hybrid Strassen at 1024</span></div>
-          <div class="metric accent-blue"><b>O(n^3)</b><span>classifies growth, not cache locality or constants</span></div>
-          <div class="metric accent-gold"><b>64</b><span>the threshold that prevents tiny recursive calls</span></div>
         </div>
       </div>
     </section>
