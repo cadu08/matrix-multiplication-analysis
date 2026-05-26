@@ -203,6 +203,11 @@
       grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 
+    .grid.stack {
+      grid-template-columns: 1fr;
+      align-content: center;
+    }
+
     .card,
     .metric,
     .figure,
@@ -223,6 +228,10 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+    }
+
+    .grid.stack .metric {
+      min-height: 210px;
     }
 
     .metric b {
@@ -323,6 +332,53 @@
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
       font-size: clamp(17px, 1.8vw, 25px);
       line-height: 1.35;
+    }
+
+    .unit-note {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-left: 7px solid var(--blue);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.93);
+      color: var(--muted);
+      font-size: clamp(14px, 1.35vw, 19px);
+      line-height: 1.3;
+    }
+
+    .unit-note code {
+      color: var(--ink);
+      font-weight: 850;
+    }
+
+    .plot-explain {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 14px;
+    }
+
+    .example-note {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-left: 7px solid var(--green);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.93);
+      color: var(--muted);
+      font-size: clamp(14px, 1.28vw, 18px);
+      line-height: 1.3;
+    }
+
+    .example-note b,
+    .example-note code {
+      color: var(--ink);
+      font-weight: 850;
+    }
+
+    .plot-explain .small {
+      margin-top: 0;
     }
 
     .block-matrix {
@@ -622,6 +678,41 @@
       font-size: 18px;
     }
 
+    .qr-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 28px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-left: 7px solid var(--teal);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.93);
+      box-shadow: var(--shadow);
+    }
+
+    .qr-card img {
+      width: clamp(120px, 15vw, 170px);
+      aspect-ratio: 1;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    .qr-card b {
+      display: block;
+      color: var(--ink);
+      font-size: clamp(18px, 2vw, 26px);
+      line-height: 1.1;
+    }
+
+    .qr-card span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: clamp(14px, 1.35vw, 18px);
+      line-height: 1.3;
+    }
+
     .nav {
       position: fixed;
       left: 22px;
@@ -700,7 +791,8 @@
       .grid.five,
       .threshold,
       .product-comparison,
-      .call-growth {
+      .call-growth,
+      .plot-explain {
         grid-template-columns: 1fr;
       }
 
@@ -780,12 +872,10 @@
           <div class="kicker">Classical baseline</div>
           <h2>Direct multiplication explains the cubic baseline</h2>
           <p>There are <code>n^2</code> output cells, and each cell computes an inner product with <code>n</code> multiplications and additions.</p>
-          <div class="formula">C[i][j] = sum A[i][k]B[k][j]<br>T(n) = n x n x n = Theta(n^3)</div>
+          <div class="formula">C[i][j] = sum A[i][k]B[k][j]<br>T(n) = n x n x n = O(n^3)</div>
         </div>
-        <div class="grid">
-          <div class="metric accent-teal"><b>n^2</b><span>entries in the output matrix</span></div>
-          <div class="metric accent-blue"><b>n</b><span>terms per inner product</span></div>
-          <div class="metric accent-green"><b>0 B</b><span>tracked heap in the iterative algorithm</span></div>
+        <div class="grid stack">
+          <div class="metric accent-green"><b>O(n^3)</b><span>total work for the classical baseline</span></div>
           <div class="metric accent-gold"><b class="label">Reference</b><span>used to validate all other algorithms</span></div>
         </div>
       </div>
@@ -940,11 +1030,14 @@
     <section class="slide plot-slide">
       <div class="content">
         <div class="kicker">Observed growth</div>
-        <h2>Empirical growth exponents</h2>
+        <h2>How fast does time grow when n doubles?</h2>
         <div class="figure">
           <img src="plots/observed_growth_exponent_between_consecutive_sizes.png" alt="Observed growth exponent between consecutive sizes">
         </div>
-        <p class="small">The estimate uses <code>log2(T(2n) / T(n))</code>. Hybrid Strassen approaches the expected Strassen exponent near the largest sizes.</p>
+        <div class="plot-explain">
+          <div class="example-note"><b>Example:</b> if doubling <code>n</code> makes time about <code>8x</code> larger, then <code>log2(8) = 3</code>, so the observed growth is cubic.</div>
+          <p class="small">The estimate uses <code>log2(T(2n) / T(n))</code>. Strassen expects <code>log2(7) ≈ 2.81</code>, and Hybrid Strassen approaches that exponent near the largest sizes.</p>
+        </div>
       </div>
     </section>
 
@@ -971,6 +1064,7 @@
         <div class="figure">
           <img src="plots/tracked_heap_peak_by_algorithm.png" alt="Tracked heap peak by algorithm and matrix size">
         </div>
+        <div class="unit-note"><code>1 MiB</code> = <code>1,048,576 bytes</code> ≈ <code>1.05 MB</code></div>
         <p class="small">At <code>1024 x 1024</code>, Hybrid Strassen peaks at about 55.8 MiB of tracked heap, while the iterative baseline reports 0 B because it does not allocate temporary matrices through the tracker.</p>
       </div>
     </section>
@@ -1025,6 +1119,13 @@
           <div class="kicker">Final slide</div>
           <h2>Thank you</h2>
           <p>Matrix Multiplication Algorithms: theoretical and experimental analysis of five implementations.</p>
+          <div class="qr-card">
+            <img src="qr_codes/github_project.png" alt="QR code for the GitHub project repository">
+            <div>
+              <b>GitHub project</b>
+              <span>Scan to open the repository</span>
+            </div>
+          </div>
         </div>
         <div class="people">
           <div class="person">
