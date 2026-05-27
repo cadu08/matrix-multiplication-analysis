@@ -19,12 +19,42 @@ The repository compares five square matrix multiplication implementations:
 The current experimental setup tests powers of two:
 
 ```text
-64, 128, 256, 512, 1024
+64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384
 ```
 
-For each size, the benchmark generates ten deterministic pairs of matrices
+For each size, the benchmark generates 30 deterministic pairs of matrices
 using `FIXED_SEED = 42`. Matrix entries are pseudo-random `double` values in
 the open interval `(0, 1)`.
+
+The largest sizes are intentionally expensive. A single `16384 x 16384`
+matrix of `double` values requires about 2 GiB of payload storage, before
+counting the second input matrix, result matrices, the iterative reference and
+temporary matrices allocated by recursive algorithms.
+
+## Threshold Calibration
+
+Threshold calibration is a separate experimental phase from the official
+five-algorithm benchmark. It exists to justify the cutoff used by the hybrid
+algorithms before the final comparison is interpreted.
+
+The calibration phase tests only:
+
+- `hybrid_divide_conquer`
+- `hybrid_strassen`
+
+The standard calibration target uses:
+
+```text
+sizes: 512, 1024, 2048
+pairs per size: 5
+thresholds: 16, 32, 64, 128, 256
+```
+
+This separation prevents the official benchmark CSV from mixing two different
+questions: "which algorithm is fastest under a fixed protocol?" and "which
+hybrid cutoff should be used?" Once a cutoff is selected, the official
+benchmark should keep that value fixed through `HYBRID_DIVIDE_CONQUER_THRESHOLD`
+and `HYBRID_STRASSEN_THRESHOLD`. The current official defaults are both `64`.
 
 ## Benchmark Commands
 
@@ -55,18 +85,37 @@ Resume mode reads the existing raw CSV before running, marks only complete rows
 with `is_correct=1` as reusable, and appends missing algorithm/size/pair runs.
 This bookkeeping is intentionally outside the timed multiplication interval.
 
+Use threshold targets only for cutoff calibration:
+
+```bash
+make threshold-smoke
+make aggregate-threshold-smoke
+make threshold-full
+make aggregate-threshold-full
+```
+
+Threshold runs do not use resume mode. They are intentionally smaller than the
+official full benchmark and overwrite their target CSV when rerun.
+
 ## Generated Files
 
 The standard raw full benchmark writes:
 
 ```text
-results/experiment_results_sizes5_pairs10_seed42.csv
+results/experiment_results_sizes9_pairs30_seed42.csv
 ```
 
 The standard aggregated full benchmark writes:
 
 ```text
-results/experiment_summary_sizes5_pairs10_seed42.csv
+results/experiment_summary_sizes9_pairs30_seed42.csv
+```
+
+The standard threshold calibration writes:
+
+```text
+results/threshold_results_sizes3_pairs5_thresholds5_seed42.csv
+results/threshold_summary_sizes3_pairs5_thresholds5_seed42.csv
 ```
 
 The first-pass analysis target writes:
@@ -109,6 +158,10 @@ Important columns:
   configured floating-point tolerance.
 - `max_abs_error`: maximum absolute difference from the iterative reference.
 - `max_rel_error`: maximum relative difference from the iterative reference.
+
+Threshold calibration raw CSVs include one additional column:
+
+- `threshold`: cutoff value passed to the hybrid algorithm for that run.
 
 ## Timing Interpretation
 
@@ -177,10 +230,17 @@ than the algorithm call alone.
 
 ## Aggregated CSV Schema
 
-The aggregation script groups raw rows by:
+For official benchmark CSVs, the aggregation script groups raw rows by:
 
 ```text
 algorithm, matrix_size
+```
+
+For threshold calibration CSVs, the aggregation script detects the extra
+`threshold` column and groups raw rows by:
+
+```text
+algorithm, threshold, matrix_size
 ```
 
 For each metric it exports:
@@ -199,16 +259,16 @@ It also exports:
 For scientific reporting, prefer the aggregated file for tables and plots, but
 return to the raw CSV when investigating outliers.
 
-## Current Plausibility Notes
+## Plausibility Notes
 
-The current full results are plausible:
+The previously collected five-size full results were plausible:
 
 - `recursive` grows close to the expected `O(n^3)` trend but is much slower than
   `iterative` because of recursive allocation and copying overhead.
 - Pure `strassen` is faster than pure divide-and-conquer at larger sizes but
   still expensive because it recurses to `n == 1`.
 - Hybrid algorithms are the practical winners.
-- `hybrid_strassen` is fastest for the larger tested sizes.
+- `hybrid_strassen` was fastest for the larger tested sizes in that collection.
 - Strassen variants show larger floating-point errors than the iterative
   baseline, but current errors remain small relative to the result magnitudes.
 - Tracked heap usage is higher for Strassen variants than for divide-and-conquer
@@ -216,6 +276,11 @@ The current full results are plausible:
 
 Avoid drawing strong conclusions from `64` and `128` alone. These runs are very
 short and therefore more sensitive to measurement noise.
+
+After extending the official setup to nine sizes, regenerate the full CSV
+before making claims about `2048`, `4096`, `8192` or `16384`. These larger
+sizes may expose memory-capacity limits and paging effects, especially for pure
+recursive variants.
 
 ## Recommended Future Workflow
 
@@ -228,6 +293,15 @@ When changing algorithm code:
    official full collection.
 5. Run `make aggregate-full`.
 6. Run `make analyze-full`.
+
+When changing threshold-selection policy:
+
+1. Run `make threshold-smoke`.
+2. Run `make aggregate-threshold-smoke`.
+3. Run `make threshold-full`.
+4. Run `make aggregate-threshold-full`.
+5. Use the threshold summary to choose fixed hybrid thresholds.
+6. Document the chosen values before rerunning the official full benchmark.
 
 When changing only analysis scripts:
 
@@ -293,4 +367,6 @@ through `CFLAGS`:
 The Makefile currently standardizes:
 
 - smoke run: `NUM_SIZES=1`, `NUM_PAIRS=1`;
-- full run: default constants, currently five sizes and ten pairs.
+- full run: default constants, currently nine sizes and 30 pairs.
+- threshold smoke run: `THRESHOLD_SWEEP=1`, `NUM_SIZES=1`, `NUM_PAIRS=1`;
+- threshold full run: `THRESHOLD_SWEEP=1`, `NUM_SIZES=3`, `NUM_PAIRS=5`.

@@ -70,8 +70,17 @@ The experiments use square matrices with the following sizes:
 - 256 × 256
 - 512 × 512
 - 1024 × 1024
+- 2048 × 2048
+- 4096 × 4096
+- 8192 × 8192
+- 16384 × 16384
 
-For each size, 10 pairs of matrices `A` and `B` are generated.
+For each size, 30 pairs of matrices `A` and `B` are generated.
+
+The largest configured sizes are computationally and memory intensive. A single
+`16384 x 16384` matrix of `double` values requires about 2 GiB of payload
+storage before accounting for the second input matrix, reference/result matrices
+and recursive temporary allocations.
 
 The matrices are filled with pseudo-random floating-point values in the open interval `(0, 1)`, excluding both zero and one. A fixed random seed is used to ensure reproducibility, meaning that the same input matrices can be generated again in future executions unless the seed is changed.
 
@@ -176,7 +185,7 @@ make benchmark-full
 This writes:
 
 ```bash
-results/experiment_results_sizes5_pairs10_seed42.csv
+results/experiment_results_sizes9_pairs30_seed42.csv
 ```
 
 If a long benchmark is interrupted, continue from the already completed
@@ -196,13 +205,58 @@ same file. This bookkeeping, CSV flushing and progress output happen outside
 the timed multiplication interval, so the recorded `time_seconds` metric remains
 restricted to the algorithm call itself.
 
+### Threshold Calibration Targets
+
+Threshold calibration is kept separate from the official benchmark. Its purpose
+is to choose and justify the cutoff used by the hybrid algorithms, not to
+replace the final five-algorithm comparison.
+
+The calibration run tests only:
+
+- `hybrid_divide_conquer`
+- `hybrid_strassen`
+
+It uses matrix sizes `512`, `1024` and `2048`, five deterministic matrix pairs
+per size, and thresholds:
+
+```text
+16, 32, 64, 128, 256
+```
+
+For a quick validation of the threshold-calibration pipeline, run:
+
+```bash
+make threshold-smoke
+make aggregate-threshold-smoke
+```
+
+For the calibration collection, run:
+
+```bash
+make threshold-full
+make aggregate-threshold-full
+```
+
+This writes:
+
+```bash
+results/threshold_results_sizes3_pairs5_thresholds5_seed42.csv
+results/threshold_summary_sizes3_pairs5_thresholds5_seed42.csv
+```
+
+The threshold CSV includes a `threshold` column and the aggregation groups by
+`algorithm`, `threshold` and `matrix_size`. The official benchmark keeps fixed
+thresholds so that its timing comparison remains a controlled experiment. The
+current official defaults are `HYBRID_DIVIDE_CONQUER_THRESHOLD=64` and
+`HYBRID_STRASSEN_THRESHOLD=64`.
+
 ### Result Aggregation
 
 After generating a raw benchmark CSV, aggregate the samples by algorithm and
 matrix size with:
 
 ```bash
-python3 scripts/aggregate_results.py results/experiment_results_sizes5_pairs10_seed42.csv results/experiment_summary_sizes5_pairs10_seed42.csv
+python3 scripts/aggregate_results.py results/experiment_results_sizes9_pairs30_seed42.csv results/experiment_summary_sizes9_pairs30_seed42.csv
 ```
 
 Equivalent Make targets are available for the standard benchmark outputs:
@@ -218,7 +272,7 @@ each recorded metric. These grouped values are intended for comparing observed
 growth trends against the theoretical complexity of each algorithm.
 
 The standard Make targets also validate the expected number of samples per
-group: `aggregate-smoke` requires one sample and `aggregate-full` requires ten
+group: `aggregate-smoke` requires one sample and `aggregate-full` requires 30
 samples for every algorithm/size combination. This prevents an interrupted
 benchmark run from being summarized as if it were complete.
 

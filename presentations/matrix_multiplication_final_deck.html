@@ -1081,24 +1081,24 @@
               <li><b>Strassen</b><span><code>7</code> products + more auxiliary sums</span></li>
               <li><b>Small blocks</b><span>less arithmetic to amortize setup cost</span></li>
             </ul>
-            <div class="cutoff-note">Hybrid rule: keep recursion for larger blocks; stop at <code>64 x 64</code>.</div>
+            <div class="cutoff-note">Official runs currently fix the cutoff at <code>64 x 64</code>; threshold calibration is kept as a separate experiment.</div>
           </div>
         </div>
         <div class="setup-strip" aria-label="Benchmark setup summary">
-          <div class="setup-stat accent-teal"><b>5</b><span>matrix sizes: 64, 128, 256, 512, 1024</span></div>
-          <div class="setup-stat accent-blue"><b>10</b><span>deterministic pairs per size, seed 42</span></div>
-          <div class="setup-note"><b>Measured per algorithm run</b><span>time, correctness, numerical error, tracked heap peak</span></div>
+          <div class="setup-stat accent-teal"><b>9</b><span>matrix sizes: powers of two from 64 to 16384</span></div>
+          <div class="setup-stat accent-blue"><b>30</b><span>deterministic pairs per size, seed 42</span></div>
+          <div class="setup-note"><b>1350 measured runs</b><span>5 algorithms x 9 sizes x 30 pairs; time, correctness, numerical error, tracked heap peak</span></div>
         </div>
       </div>
     </section>
 
     <section class="slide">
       <div class="content">
-        <div class="kicker">Central result</div>
-        <h2>Hybrid Strassen is the fastest algorithm in 4 of 5 sizes</h2>
+        <div class="kicker">Current collected baseline</div>
+        <h2>Initial results identify the hybrid algorithms as practical winners</h2>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Matrix size</th><th>Best algorithm</th><th>Mean time</th></tr></thead>
+            <thead><tr><th>Collected size</th><th>Best algorithm</th><th>Mean time</th></tr></thead>
             <tbody>
               <tr><td>64</td><td>Hybrid Strassen</td><td>233.9 us</td></tr>
               <tr><td>128</td><td>Hybrid D&amp;C</td><td>2.11 ms</td></tr>
@@ -1108,7 +1108,7 @@
             </tbody>
           </table>
         </div>
-        <p>The only exception is at <code>128 x 128</code>, where the two hybrid approaches are very close and Hybrid D&amp;C has a small advantage.</p>
+        <p>The official protocol has now been expanded to <code>9</code> sizes and <code>30</code> pairs per size. The table preserves the already collected <code>64</code> to <code>1024</code> baseline; the larger sizes require regenerating the full benchmark before making final claims.</p>
       </div>
     </section>
 
@@ -1131,7 +1131,7 @@
         </div>
         <div class="plot-explain">
           <div class="example-note"><b>Example:</b> if doubling <code>n</code> makes time about <code>8x</code> larger, then <code>log2(8) = 3</code>, so the observed growth is cubic.</div>
-          <p class="small">The estimate uses <code>log2(T(2n) / T(n))</code>. Strassen expects <code>log2(7) ≈ 2.81</code>, and Hybrid Strassen approaches that exponent near the largest sizes.</p>
+          <p class="small">The estimate uses <code>log2(T(2n) / T(n))</code>. Strassen expects <code>log2(7) ≈ 2.81</code>. The expanded run will test whether that trend remains visible from <code>2048</code> through <code>16384</code>.</p>
         </div>
       </div>
     </section>
@@ -1144,7 +1144,7 @@
           <img src="plots/tracked_heap_peak_by_algorithm.png" alt="Tracked heap peak by algorithm and matrix size">
         </div>
         <div class="unit-note"><code>1 MiB</code> = <code>1,048,576 bytes</code> ≈ <code>1.05 MB</code></div>
-        <p class="small">At <code>1024 x 1024</code>, Hybrid Strassen peaks at about 55.8 MiB of tracked heap, while the iterative baseline reports 0 B because it does not allocate temporary matrices through the tracker.</p>
+        <p class="small">At <code>1024 x 1024</code> in the collected baseline, Hybrid Strassen peaks at about 55.8 MiB of tracked heap. At <code>16384 x 16384</code>, even one dense matrix of doubles needs about 2 GiB before recursive temporaries.</p>
       </div>
     </section>
 
@@ -1175,7 +1175,7 @@
         <div class="figure">
           <img src="plots/distribution_of_execution_time_across_matrix_pairs.png" alt="Distribution of execution time across matrix pairs">
         </div>
-        <p class="small">The smallest sizes are very short runs, so they are more sensitive to measurement noise. The larger sizes provide the most reliable interpretation of growth.</p>
+        <p class="small">The expanded protocol uses 30 deterministic pairs per size, increasing the evidence available for timing variation and outlier analysis.</p>
       </div>
     </section>
 
@@ -1220,7 +1220,7 @@
     </section>
   </main>
 
-  <div class="counter" id="counter">1 / 17</div>
+  <div class="counter" id="counter">1 / 11</div>
   <nav class="nav" aria-label="Slide navigation">
     <button type="button" id="prev" aria-label="Previous slide">&#8592;</button>
     <div class="progress-shell" aria-hidden="true"><div class="progress" id="progress"></div></div>

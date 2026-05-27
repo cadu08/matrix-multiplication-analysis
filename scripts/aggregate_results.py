@@ -2,8 +2,9 @@
 """Aggregate raw matrix multiplication benchmark measurements.
 
 The benchmark emits one row per algorithm, input size and generated matrix
-pair. This script reduces those raw samples into per-algorithm/per-size
-statistics suitable for later theoretical-vs-empirical analysis.
+pair. Threshold calibration CSVs add a threshold column. This script reduces
+those raw samples into grouped statistics suitable for later
+theoretical-vs-empirical analysis.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from pathlib import Path
 from statistics import mean, stdev
 
 
-GROUP_FIELDS = ("algorithm", "matrix_size")
+BASE_GROUP_FIELDS = ("algorithm", "matrix_size")
 METRIC_FIELDS = (
     "time_seconds",
     "memory_difference_kb",
@@ -29,7 +30,7 @@ METRIC_FIELDS = (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Aggregate benchmark CSV rows by algorithm and matrix size."
+        description="Aggregate benchmark CSV rows by algorithm, matrix size and optional threshold."
     )
     parser.add_argument(
         "input_csv",
@@ -57,59 +58,61 @@ def sample_stddev(values: list[float]) -> float:
 
 
 def aggregate(input_csv: Path, expected_samples: int | None) -> list[dict[str, str]]:
-    groups: dict[tuple[str, str], dict[str, list[float]]] = defaultdict(
-        lambda: {field: [] for field in METRIC_FIELDS}
-    )
-    correctness: dict[tuple[str, str], list[int]] = defaultdict(list)
-
     with input_csv.open(newline="") as raw_file:
         reader = csv.DictReader(raw_file)
-
-        missing_fields = set(GROUP_FIELDS + METRIC_FIELDS + ("is_correct",)) - set(
-            reader.fieldnames or []
+        fieldnames = reader.fieldnames or []
+        group_fields = (
+            ("algorithm", "threshold", "matrix_size")
+            if "threshold" in fieldnames
+            else BASE_GROUP_FIELDS
         )
+        groups: dict[tuple[str, ...], dict[str, list[float]]] = defaultdict(
+            lambda: {field: [] for field in METRIC_FIELDS}
+        )
+        correctness: dict[tuple[str, ...], list[int]] = defaultdict(list)
+
+        missing_fields = set(group_fields + METRIC_FIELDS + ("is_correct",)) - set(fieldnames)
         if missing_fields:
             missing = ", ".join(sorted(missing_fields))
             raise ValueError(f"Input CSV is missing required columns: {missing}")
 
         for row in reader:
-            key = tuple(row[field] for field in GROUP_FIELDS)
+            key = tuple(row[field] for field in group_fields)
 
             for field in METRIC_FIELDS:
                 if row[field] in (None, ""):
                     raise ValueError(
                         f"Missing value for {field} in group "
-                        f"algorithm={key[0]}, matrix_size={key[1]}"
+                        f"{format_group_key(group_fields, key)}"
                     )
                 groups[key][field].append(float(row[field]))
 
             if row["is_correct"] in (None, ""):
                 raise ValueError(
                     f"Missing value for is_correct in group "
-                    f"algorithm={key[0]}, matrix_size={key[1]}"
+                    f"{format_group_key(group_fields, key)}"
                 )
             correctness[key].append(int(row["is_correct"]))
 
     aggregated_rows: list[dict[str, str]] = []
 
-    for key in sorted(groups, key=lambda item: (int(item[1]), item[0])):
-        algorithm, matrix_size = key
+    for key in sorted(groups, key=lambda item: group_sort_key(group_fields, item)):
         samples = len(correctness[key])
         correct_samples = sum(correctness[key])
 
         if expected_samples is not None and samples != expected_samples:
             raise ValueError(
-                f"Expected {expected_samples} samples for algorithm={algorithm}, "
-                f"matrix_size={matrix_size}, found {samples}"
+                f"Expected {expected_samples} samples for "
+                f"{format_group_key(group_fields, key)}, found {samples}"
             )
 
         row = {
-            "algorithm": algorithm,
-            "matrix_size": matrix_size,
             "sample_count": str(samples),
             "correct_sample_count": str(correct_samples),
             "all_correct": "1" if correct_samples == samples else "0",
         }
+        for field, value in zip(group_fields, key):
+            row[field] = value
 
         for field, values in groups[key].items():
             row[f"{field}_mean"] = f"{mean(values):.17g}"
@@ -122,16 +125,32 @@ def aggregate(input_csv: Path, expected_samples: int | None) -> list[dict[str, s
     return aggregated_rows
 
 
+def group_sort_key(group_fields: tuple[str, ...], key: tuple[str, ...]) -> tuple[int, str, int]:
+    values = dict(zip(group_fields, key))
+    threshold = int(values.get("threshold", "0"))
+
+    return (int(values["matrix_size"]), values["algorithm"], threshold)
+
+
+def format_group_key(group_fields: tuple[str, ...], key: tuple[str, ...]) -> str:
+    return ", ".join(f"{field}={value}" for field, value in zip(group_fields, key))
+
+
 def write_summary(output_csv: Path, rows: list[dict[str, str]]) -> None:
     output_csv.parent.mkdir(parents=True, exist_ok=True)
 
-    fieldnames = [
-        "algorithm",
+    has_threshold = any("threshold" in row for row in rows)
+    fieldnames = ["algorithm"]
+
+    if has_threshold:
+        fieldnames.append("threshold")
+
+    fieldnames.extend([
         "matrix_size",
         "sample_count",
         "correct_sample_count",
         "all_correct",
-    ]
+    ])
 
     for field in METRIC_FIELDS:
         fieldnames.extend(
@@ -157,7 +176,8 @@ def main() -> None:
     rows = aggregate(input_csv, args.expected_samples)
     write_summary(output_csv, rows)
 
-    print(f"Aggregated {len(rows)} algorithm/size groups.")
+    grouped_by = "algorithm/threshold/size" if any("threshold" in row for row in rows) else "algorithm/size"
+    print(f"Aggregated {len(rows)} {grouped_by} groups.")
     print(f"Summary saved to {output_csv}")
 
 
